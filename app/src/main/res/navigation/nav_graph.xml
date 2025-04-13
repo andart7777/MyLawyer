@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/chatbotFragment">
+
+    <fragment
+        android:id="@+id/chatbotFragment"
+        android:name="com.example.mylawyer.fragment.ChatbotFragment"
+        android:label="fragment_chatbot"
+        tools:layout="@layout/fragment_chatbot" />
+
+    <fragment
+        android:id="@+id/catalogueFragment"
+        android:name="com.example.mylawyer.fragment.CatalogueFragment"
+        android:label="Справочник"
+        tools:layout="@layout/fragment_catalogue" />
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.mylawyer.fragment.SettingsFragment"
+        android:label="Настройки"
+        tools:layout="@layout/fragment_settings" />
+
+</navigation>
