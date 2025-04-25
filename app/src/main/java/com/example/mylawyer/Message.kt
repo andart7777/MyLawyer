@@ -1,6 +1,6 @@
-package com.example.mylawyer
+    package com.example.mylawyer
 
-data class Message(
-    val text: String,
-    val isUser: Boolean
-)
+    data class Message(
+        val text: String,
+        val isUser: Boolean
+    )

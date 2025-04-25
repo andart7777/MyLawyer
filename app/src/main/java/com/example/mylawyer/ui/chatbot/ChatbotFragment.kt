@@ -1,4 +1,4 @@
-package com.example.mylawyer.fragment
+package com.example.mylawyer.ui.chatbot
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -7,12 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageButton
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.mylawyer.Message
 import com.example.mylawyer.MessageAdapter
 import com.example.mylawyer.R
 import com.example.mylawyer.databinding.FragmentChatbotBinding
+import com.facebook.shimmer.ShimmerFrameLayout
 import jp.wasabeef.recyclerview.animators.SlideInUpAnimator
 
 class ChatbotFragment : Fragment() {
@@ -28,6 +30,8 @@ class ChatbotFragment : Fragment() {
 //        Message("I have a court date next week.", true)
     )
     private lateinit var binding: FragmentChatbotBinding
+    private val viewModel: ChatViewModel by viewModels()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,6 +68,25 @@ class ChatbotFragment : Fragment() {
         adapter = MessageAdapter(message)
         recyclerView.adapter = adapter
 
+        // Подписка на ответ бота
+        viewModel.botResponse.observe(viewLifecycleOwner) { botReply ->
+            message.add(Message(botReply, false))
+            adapter.notifyItemInserted(message.size - 1)
+            recyclerView.scrollToPosition(message.size - 1)
+        }
+        // Прелоадер
+        val typingAnimation = binding.typingAnimation
+
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            if (isLoading) {
+                typingAnimation.visibility = View.VISIBLE
+                typingAnimation.playAnimation()
+            } else {
+                typingAnimation.pauseAnimation()
+                typingAnimation.visibility = View.GONE
+            }
+        }
+
         buttonSend.setOnClickListener {
             val text = editTextMessage.text.toString().trim()
             if (text.isNotEmpty()) {
@@ -74,9 +97,14 @@ class ChatbotFragment : Fragment() {
                 }
 
                 message.add(Message(text, true))
-                message.add(Message("Ответ бота $text", false))
-                adapter.notifyItemRangeInserted(message.size - 2, 2)
+//                message.add(Message("Ответ бота $text", false))
+//                adapter.notifyItemRangeInserted(message.size - 2, 2)
+                adapter.notifyItemInserted(message.size - 1)
                 recyclerView.scrollToPosition(message.size - 1)
+
+                // Отправляем сообщение на сервер
+                viewModel.sendMessage(text)
+
                 editTextMessage.text.clear()
             }
         }
