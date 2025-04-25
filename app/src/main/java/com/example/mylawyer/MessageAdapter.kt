@@ -50,7 +50,7 @@ class MessageAdapter(private val messages: List<Message>) :
                 0
             )
             holder.textMessage.setBackgroundResource(R.drawable.bg_user_message)
-            holder.reactionContainer.visibility = View.VISIBLE
+            holder.reactionContainer.visibility = View.GONE
         } else {
             // Бот – влево
             Log.d("Adapter", "BOT message: ${message.text}")
@@ -62,7 +62,7 @@ class MessageAdapter(private val messages: List<Message>) :
                 0
             )
             holder.textMessage.setBackgroundResource(R.drawable.bg_bot_message)
-            holder.reactionContainer.visibility = View.GONE
+            holder.reactionContainer.visibility = View.VISIBLE
         }
 
         constraintSet.applyTo(holder.messageContainer)
