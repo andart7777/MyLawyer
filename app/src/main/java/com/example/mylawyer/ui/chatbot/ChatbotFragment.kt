@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageButton
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.mylawyer.Message
@@ -69,11 +70,14 @@ class ChatbotFragment : Fragment() {
         recyclerView.adapter = adapter
 
         // Подписка на ответ бота
-        viewModel.botResponse.observe(viewLifecycleOwner) { botReply ->
-            message.add(Message(botReply, false))
-            adapter.notifyItemInserted(message.size - 1)
-            recyclerView.scrollToPosition(message.size - 1)
+        viewModel.botResponse.observe(viewLifecycleOwner) { event ->
+            event.getContentIfNotHandled()?.let { botReply ->
+                message.add(Message(botReply, false))
+                adapter.notifyItemInserted(message.size - 1)
+                recyclerView.scrollToPosition(message.size - 1)
+            }
         }
+
         // Прелоадер
         val typingAnimation = binding.typingAnimation
 
@@ -107,6 +111,19 @@ class ChatbotFragment : Fragment() {
 
                 editTextMessage.text.clear()
             }
+        }
+
+        binding.btChatHistory.setOnClickListener {
+            findNavController().navigate(R.id.action_chatbotFragment_to_chatHistoryFragment)
+        }
+    }
+
+    // Прокрутка вниз при двойном нажатии на "чат" в bottom menu
+    fun scrollToBottom() {
+        binding.recyclerView.post {
+            binding.recyclerView.scrollToPosition(
+                binding.recyclerView.adapter?.itemCount?.minus(1) ?: 0
+            )
         }
     }
 }

@@ -9,7 +9,11 @@
         android:id="@+id/chatbotFragment"
         android:name="com.example.mylawyer.ui.chatbot.ChatbotFragment"
         android:label="fragment_chatbot"
-        tools:layout="@layout/fragment_chatbot" />
+        tools:layout="@layout/fragment_chatbot" >
+        <action
+            android:id="@+id/action_chatbotFragment_to_chatHistoryFragment"
+            app:destination="@id/chatHistoryFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/catalogueFragment"
@@ -22,5 +26,9 @@
         android:name="com.example.mylawyer.fragment.SettingsFragment"
         android:label="Настройки"
         tools:layout="@layout/fragment_settings" />
+    <fragment
+        android:id="@+id/chatHistoryFragment"
+        android:name="com.example.mylawyer.ui.chatbot.ChatHistoryFragment"
+        android:label="ChatHistoryFragment" />
 
 </navigation>
