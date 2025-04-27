@@ -9,6 +9,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.mylawyer.databinding.ActivityMainBinding
+import com.example.mylawyer.ui.chatbot.ChatbotFragment
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -22,6 +23,27 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
         val navController = navHostFragment.navController
+
+        // Привязка навигации к нижнему меню
         binding.bottomNav.setupWithNavController(navController)
+
+        // Обработка повторного нажатия
+        binding.bottomNav.setOnItemReselectedListener { item ->
+            when (item.itemId) {
+                R.id.chatbotFragment -> {
+                    val currentFragment = supportFragmentManager
+                        .findFragmentById(R.id.fragmentContainerView)
+                        ?.childFragmentManager
+                        ?.fragments
+                        ?.firstOrNull()
+
+                    if (currentFragment is ChatbotFragment) {
+                        currentFragment.scrollToBottom()
+                    } else {
+                        navController.navigate(R.id.chatbotFragment)
+                    }
+                }
+            }
+        }
     }
 }

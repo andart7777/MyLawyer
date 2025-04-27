@@ -6,13 +6,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mylawyer.repository.ChatRepository
+import com.example.mylawyer.utils.Event
 import kotlinx.coroutines.launch
 
 class ChatViewModel : ViewModel() {
     private val repository = ChatRepository()
 
-    private val _botResponse = MutableLiveData<String>()
-    val botResponse: LiveData<String> = _botResponse
+    private val _botResponse = MutableLiveData<Event<String>>()
+    val botResponse: LiveData<Event<String>> = _botResponse
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
@@ -27,16 +28,16 @@ class ChatViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     val body = response.body()
                     if (body != null) {
-                        _botResponse.value = body.response
+                        _botResponse.value = Event(body.response)
                     } else {
-                        _botResponse.value = "Ответ пуст"
+                        _botResponse.value = Event("Ответ пуст")
                     }
                 } else {
-                    _botResponse.value = "Ошибка: ${response.code()}"
+                    _botResponse.value = Event("Ошибка: ${response.code()}")
                 }
             } catch (e: Exception) {
                 Log.e("ChatViewModel", "Ошибка при получении ответа", e)
-                _botResponse.value = "Ошибка подключения: ${e.message}"
+                _botResponse.value = Event("Ошибка подключения: ${e.message}")
             } finally {
                 _isLoading.value = false
             }
