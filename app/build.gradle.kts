@@ -40,6 +40,10 @@ android {
 
 dependencies {
 
+    implementation (libs.logging.interceptor)
+    implementation (libs.recyclerview.animators)
+    implementation (libs.lottie.v600)
+
     implementation (libs.androidx.navigation.fragment.ktx)
     implementation (libs.androidx.navigation.ui.ktx)
     implementation (libs.recyclerview.animators) // Плавный скролл сообщений

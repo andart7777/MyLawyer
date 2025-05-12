@@ -1,45 +1,62 @@
 package com.example.mylawyer.ui.chatbot
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mylawyer.data.model.ChatCreateRequest
+import com.example.mylawyer.data.model.ChatRequest
+import com.example.mylawyer.data.model.ChatResponse
+import com.example.mylawyer.data.model.NewChatResponse
 import com.example.mylawyer.repository.ChatRepository
-import com.example.mylawyer.utils.Event
+import com.example.mylawyer.utils.UserIdManager
 import kotlinx.coroutines.launch
+import java.util.UUID
 
-class ChatViewModel : ViewModel() {
-    private val repository = ChatRepository()
+class ChatViewModel(
+    private val repository: ChatRepository,
+    private val context: Context
+) : ViewModel() {
+    private val _messages = MutableLiveData<List<ChatResponse>>()
+    val messages: LiveData<List<ChatResponse>> get() = _messages
 
-    private val _botResponse = MutableLiveData<Event<String>>()
-    val botResponse: LiveData<Event<String>> = _botResponse
+    private val _error = MutableLiveData<String>()
+    val error: LiveData<String> get() = _error
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> = _isLoading
+    private val _currentChatId = MutableLiveData<UUID?>()
+    val currentChatId: LiveData<UUID?> get() = _currentChatId
 
     fun sendMessage(message: String) {
-        _isLoading.value = true
-
         viewModelScope.launch {
-            try {
-                val response = repository.sendMessage(userId = 1, message)
+            val userId = UserIdManager.getUserId(context)
+            val result = repository.sendMessage(ChatRequest(userId, message))
+            result.onSuccess { response ->
+                Log.d("ChatViewModel", "Received response: $response")
+                val currentMessages = _messages.value?.toMutableList() ?: mutableListOf()
+                currentMessages.add(response)
+                _messages.postValue(currentMessages)
+                _currentChatId.postValue(response.chatId)
+            }.onFailure { exception ->
+                Log.e("ChatViewModel", "Error: ${exception.message}", exception)
+                _error.postValue(exception.message)
+            }
+        }
+    }
 
-                if (response.isSuccessful) {
-                    val body = response.body()
-                    if (body != null) {
-                        _botResponse.value = Event(body.response)
-                    } else {
-                        _botResponse.value = Event("Ответ пуст")
-                    }
-                } else {
-                    _botResponse.value = Event("Ошибка: ${response.code()}")
-                }
-            } catch (e: Exception) {
-                Log.e("ChatViewModel", "Ошибка при получении ответа", e)
-                _botResponse.value = Event("Ошибка подключения: ${e.message}")
-            } finally {
-                _isLoading.value = false
+    fun createNewChat() {
+        viewModelScope.launch {
+            val userId = UserIdManager.getUserId(context)
+            val request = ChatCreateRequest(userId = userId, title = null)
+            val result = repository.createNewChat(request)
+            result.onSuccess { response ->
+                Log.d("ChatViewModel", "New chat created: ${response.chatId}")
+                _currentChatId.postValue(response.chatId)
+                _messages.postValue(emptyList()) // Очищаем сообщения для нового чата
+            }.onFailure { exception ->
+                Log.e("ChatViewModel", "Error: ${exception.message}", exception)
+                _error.postValue(exception.message)
             }
         }
     }
