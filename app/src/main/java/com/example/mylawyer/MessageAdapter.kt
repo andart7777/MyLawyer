@@ -32,7 +32,10 @@ class MessageAdapter : ListAdapter<Message, MessageAdapter.MessageViewHolder>(Me
 
     override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
         val message = getItem(position)
+        Log.d("MessageAdapter", "Binding message: ${message.text}, isUser=${message.isUser}")
         holder.textMessage.text = message.text
+        // Скрываем TextView, если текст пустой, чтобы избежать пустого фона
+        holder.textMessage.visibility = if (message.text.isEmpty()) View.GONE else View.VISIBLE
 
         // Применяем ConstraintSet для изменения выравнивания
         val constraintSet = ConstraintSet()
@@ -50,7 +53,7 @@ class MessageAdapter : ListAdapter<Message, MessageAdapter.MessageViewHolder>(Me
                 ConstraintSet.END,
                 ConstraintSet.PARENT_ID,
                 ConstraintSet.END,
-                0
+                8
             )
             holder.textMessage.setBackgroundResource(R.drawable.bg_user_message)
             holder.reactionContainer.visibility = View.GONE
@@ -62,7 +65,7 @@ class MessageAdapter : ListAdapter<Message, MessageAdapter.MessageViewHolder>(Me
                 ConstraintSet.START,
                 ConstraintSet.PARENT_ID,
                 ConstraintSet.START,
-                0
+                8
             )
             holder.textMessage.setBackgroundResource(R.drawable.bg_bot_message)
             holder.reactionContainer.visibility = View.VISIBLE

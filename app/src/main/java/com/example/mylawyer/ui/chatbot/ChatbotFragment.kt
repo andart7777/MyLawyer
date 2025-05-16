@@ -28,7 +28,7 @@ class ChatbotFragment : Fragment() {
         ChatViewModelFactory(ChatRepository(RetrofitInstance.api), requireContext())
     }
     private lateinit var adapter: MessageAdapter
-    private var lastSentMessage: String? = null // Храним последнее отправленное сообщение
+    private val localMessages = mutableListOf<Message>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -60,22 +60,31 @@ class ChatbotFragment : Fragment() {
 
     private fun setupObservers() {
         viewModel.messages.observe(viewLifecycleOwner) { responses ->
-            val messages = responses.flatMap { response ->
-                buildList {
-                    if (lastSentMessage != null) {
-                        add(Message(lastSentMessage!!, true)) // Сообщение пользователя
-                    }
-                    add(Message(response.response, false)) // Ответ бота
+            // Добавляем только последний ответ бота, если он новый
+            if (responses.isNotEmpty()) {
+                val lastResponse = responses.last()
+                // Проверяем, нет ли уже этого ответа в localMessages
+                if (!localMessages.any { it.text == lastResponse.response && !it.isUser }) {
+                    localMessages.add(Message(lastResponse.response, false))
                 }
             }
-            Log.d("ChatbotFragment", "Messages to display: $messages")
-            adapter.submitList(messages)
-            binding.recyclerView.scrollToPosition(messages.size - 1)
-            binding.textView.visibility = if (messages.isEmpty()) View.VISIBLE else View.GONE
+            Log.d("ChatbotFragment", "Messages to display: $localMessages")
+            adapter.submitList(localMessages.toList())
+            binding.recyclerView.scrollToPosition(localMessages.size - 1)
+            binding.textView.visibility = if (localMessages.isEmpty()) View.VISIBLE else View.GONE
         }
         viewModel.error.observe(viewLifecycleOwner) { error ->
             Log.e("ChatbotFragment", "Error: $error")
             android.widget.Toast.makeText(context, "Error: $error", android.widget.Toast.LENGTH_SHORT).show()
+        }
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            if (isLoading) {
+                binding.typingAnimation.visibility = View.VISIBLE
+                binding.typingAnimation.playAnimation()
+            } else {
+                binding.typingAnimation.pauseAnimation()
+                binding.typingAnimation.visibility = View.GONE
+            }
         }
     }
 
@@ -83,7 +92,12 @@ class ChatbotFragment : Fragment() {
         binding.sendButton.setOnClickListener {
             val text = binding.edTextMessage.text.toString().trim()
             if (text.isNotEmpty()) {
-                lastSentMessage = text // Сохраняем сообщение пользователя
+                // Добавляем сообщение пользователя сразу в UI
+                localMessages.add(Message(text, true))
+                adapter.submitList(localMessages.toList())
+                binding.recyclerView.scrollToPosition(localMessages.size - 1)
+                binding.textView.visibility = View.GONE
+                // Отправляем запрос
                 viewModel.sendMessage(text)
                 binding.edTextMessage.text.clear()
             }
@@ -99,7 +113,9 @@ class ChatbotFragment : Fragment() {
     private fun setupNewChatButton() {
         binding.btNewChat.setOnClickListener {
             viewModel.createNewChat()
-            lastSentMessage = null // Сбрасываем последнее сообщение
+            localMessages.clear()
+            adapter.submitList(emptyList())
+            binding.textView.visibility = View.VISIBLE
         }
     }
 
