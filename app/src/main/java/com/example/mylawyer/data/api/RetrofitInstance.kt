@@ -4,8 +4,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-
-
+import java.util.concurrent.TimeUnit
 
 object RetrofitInstance {
 //    private const val BASE_URL = "http://127.0.0.1:8000/" // 127 само устройство а не хост машина
@@ -17,6 +16,9 @@ object RetrofitInstance {
         }
         val client = OkHttpClient.Builder()
             .addInterceptor(logging)
+            .connectTimeout(30, TimeUnit.SECONDS) // Увеличиваем таймаут подключения
+            .readTimeout(30, TimeUnit.SECONDS)    // Увеличиваем таймаут чтения
+            .writeTimeout(30, TimeUnit.SECONDS)   // Увеличиваем таймаут записи
             .build()
 
         Retrofit.Builder()

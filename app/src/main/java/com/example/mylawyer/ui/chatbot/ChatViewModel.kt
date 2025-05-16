@@ -28,25 +28,34 @@ class ChatViewModel(
     private val _currentChatId = MutableLiveData<UUID?>()
     val currentChatId: LiveData<UUID?> get() = _currentChatId
 
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> get() = _isLoading
+
     fun sendMessage(message: String) {
         viewModelScope.launch {
+            _isLoading.postValue(true) // Начинаем загрузку
             val userId = UserIdManager.getUserId(context)
             val result = repository.sendMessage(ChatRequest(userId, message))
             result.onSuccess { response ->
                 Log.d("ChatViewModel", "Received response: $response")
                 val currentMessages = _messages.value?.toMutableList() ?: mutableListOf()
-                currentMessages.add(response)
-                _messages.postValue(currentMessages)
+                // Проверяем, нет ли уже этого ответа
+                if (!currentMessages.any { it.response == response.response }) {
+                    currentMessages.add(response)
+                    _messages.postValue(currentMessages)
+                }
                 _currentChatId.postValue(response.chatId)
             }.onFailure { exception ->
                 Log.e("ChatViewModel", "Error: ${exception.message}", exception)
                 _error.postValue(exception.message)
             }
+            _isLoading.postValue(false) // Завершаем загрузку
         }
     }
 
     fun createNewChat() {
         viewModelScope.launch {
+            _isLoading.postValue(true) // Начинаем загрузку
             val userId = UserIdManager.getUserId(context)
             val request = ChatCreateRequest(userId = userId, title = null)
             val result = repository.createNewChat(request)
@@ -58,6 +67,7 @@ class ChatViewModel(
                 Log.e("ChatViewModel", "Error: ${exception.message}", exception)
                 _error.postValue(exception.message)
             }
+            _isLoading.postValue(false) // Завершаем загрузку
         }
     }
 }
