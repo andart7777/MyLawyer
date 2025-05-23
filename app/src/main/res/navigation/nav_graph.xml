@@ -8,11 +8,15 @@
     <fragment
         android:id="@+id/chatbotFragment"
         android:name="com.example.mylawyer.ui.chatbot.ChatbotFragment"
-        android:label="fragment_chatbot"
-        tools:layout="@layout/fragment_chatbot" >
+        android:label="ChatbotFragment">
         <action
             android:id="@+id/action_chatbotFragment_to_chatHistoryFragment"
             app:destination="@id/chatHistoryFragment" />
+        <argument
+            android:name="chatId"
+            app:argType="java.util.UUID"
+            app:nullable="true"
+            android:defaultValue="@null" />
     </fragment>
 
     <fragment
@@ -29,6 +33,15 @@
     <fragment
         android:id="@+id/chatHistoryFragment"
         android:name="com.example.mylawyer.ui.chatbot.ChatHistoryFragment"
-        android:label="ChatHistoryFragment" />
-
+        android:label="ChatHistoryFragment">
+        <action
+            android:id="@+id/action_chatHistoryFragment_to_chatbotFragment"
+            app:destination="@id/chatbotFragment">
+            <argument
+                android:name="chatId"
+                app:argType="java.util.UUID"
+                app:nullable="true"
+                android:defaultValue="@null" />
+        </action>
+    </fragment>
 </navigation>

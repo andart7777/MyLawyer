@@ -1,4 +1,4 @@
-package com.example.mylawyer.ui.chatbot
+package com.example.mylawyer.ui.chathistory
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -16,6 +16,7 @@ class ChatHistoryAdapter(
 
     inner class HistoryViewHolder(val binding: ItemChatHistoryBinding) :
         RecyclerView.ViewHolder(binding.root) {
+
         fun bind(item: ChatHistoryItem) {
             binding.titleTextView.text = item.title
             binding.lastMessageTextView.text = item.lastMessage
