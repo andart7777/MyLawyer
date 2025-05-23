@@ -47,7 +47,7 @@ class ChatViewModel(
                 _currentChatId.postValue(response.chatId)
             }.onFailure { exception ->
                 Log.e("ChatViewModel", "Error: ${exception.message}", exception)
-                _error.postValue(exception.message)
+                _error.postValue("Failed to send message: ${exception.message}")
             }
             _isLoading.postValue(false) // Завершаем загрузку
         }
@@ -65,9 +65,15 @@ class ChatViewModel(
                 _messages.postValue(emptyList()) // Очищаем сообщения для нового чата
             }.onFailure { exception ->
                 Log.e("ChatViewModel", "Error: ${exception.message}", exception)
-                _error.postValue(exception.message)
+                _error.postValue("Failed to create chat: ${exception.message}")
             }
             _isLoading.postValue(false) // Завершаем загрузку
         }
+    }
+
+    fun setCurrentChatId(chatId: UUID) {
+        _currentChatId.postValue(chatId)
+        _messages.postValue(emptyList()) // Очищаем сообщения (заглушка, в будущем загрузим сообщения)
+        Log.d("ChatViewModel", "Set current chatId: $chatId")
     }
 }

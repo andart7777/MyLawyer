@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mylawyer.Message
 import com.example.mylawyer.MessageAdapter
@@ -29,6 +30,7 @@ class ChatbotFragment : Fragment() {
     }
     private lateinit var adapter: MessageAdapter
     private val localMessages = mutableListOf<Message>()
+    private val args: ChatbotFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,6 +47,16 @@ class ChatbotFragment : Fragment() {
         setupSendButton()
         setupChatHistoryButton()
         setupNewChatButton()
+
+        // Проверяем, открыт ли существующий чат
+        args.chatId?.let { chatId ->
+            Log.d("ChatbotFragment", "Loading chat with chatId: $chatId")
+            // Заглушка: в будущем загрузим сообщения для chatId
+            viewModel.setCurrentChatId(chatId)
+        } ?: run {
+            Log.d("ChatbotFragment", "No chatId provided, starting new chat")
+            viewModel.createNewChat()
+        }
     }
 
     private fun setupRecyclerView() {

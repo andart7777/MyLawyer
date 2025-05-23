@@ -25,3 +25,14 @@ data class ChatCreateRequest(
     @SerializedName("user_id") val userId: UUID,
     @SerializedName("title") val title: String? = null
 )
+
+data class ChatListItem(
+    @SerializedName("chat_id") val chatId: UUID,
+    @SerializedName("title") val title: String,
+    @SerializedName("last_message") val lastMessage: String?,
+    @SerializedName("timestamp") val timestamp: String
+)
+
+data class ChatListResponse(
+    @SerializedName("chats") val chats: List<ChatListItem>
+)

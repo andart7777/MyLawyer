@@ -3,11 +3,13 @@ package com.example.mylawyer.repository
 import android.util.Log
 import com.example.mylawyer.data.api.ChatApi
 import com.example.mylawyer.data.model.ChatCreateRequest
+import com.example.mylawyer.data.model.ChatListResponse
 import com.example.mylawyer.data.model.ChatRequest
 import com.example.mylawyer.data.model.ChatResponse
 import com.example.mylawyer.data.model.NewChatResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.UUID
 
 // ChatRepository обрабатывает сетевые запросы и предоставляет данные для ViewModel.
 class ChatRepository(private val apiService: ChatApi) {
@@ -34,6 +36,20 @@ class ChatRepository(private val apiService: ChatApi) {
                 Result.success(response)
             } catch (e: Exception) {
                 Log.e("ChatRepository", "Error creating chat: ${e.message}", e)
+                Result.failure(e)
+            }
+        }
+    }
+
+    suspend fun getChats(userId: UUID): Result<ChatListResponse> {
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.d("ChatRepository", "Fetching chats for user_id=$userId")
+                val response = apiService.getChats(userId)
+                Log.d("ChatRepository", "Received chats: ${response.chats.size}")
+                Result.success(response)
+            } catch (e: Exception) {
+                Log.e("ChatRepository", "Error fetching chats: ${e.message}", e)
                 Result.failure(e)
             }
         }
