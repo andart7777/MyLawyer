@@ -13,14 +13,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mylawyer.ChatAdapter
 import com.example.mylawyer.R
 import com.example.mylawyer.data.api.RetrofitInstance
-import com.example.mylawyer.data.model.ChatListItem
+import com.example.mylawyer.data.model.ChatHistoryItem
 import com.example.mylawyer.databinding.FragmentChatHistoryBinding
 import com.example.mylawyer.repository.ChatRepository
 import com.example.mylawyer.viewmodel.ChatHistoryViewModel
 import com.example.mylawyer.viewmodel.ChatHistoryViewModelFactory
 import jp.wasabeef.recyclerview.animators.SlideInUpAnimator
 import java.util.UUID
-import com.example.mylawyer.data.model.ChatListResponse
 
 class ChatHistoryFragment : Fragment() {
 
@@ -46,21 +45,21 @@ class ChatHistoryFragment : Fragment() {
         viewModel.fetchChats()
     }
 
-    private fun setupRecyclerView() {
-        adapter = ChatAdapter { chat ->
-            // Переход к чату
-            val action = ChatHistoryFragmentDirections.actionChatHistoryFragmentToChatbotFragment(chat.chatId)
-            findNavController().navigate(action)
-        }
-        binding.recyclerView.apply {
-            layoutManager = LinearLayoutManager(requireContext())
-            adapter = this@ChatHistoryFragment.adapter
-            itemAnimator = SlideInUpAnimator().apply { addDuration = 200 }
-        }
+private fun setupRecyclerView() {
+    adapter = ChatAdapter { chat ->
+        // Переход к чату
+        val action = ChatHistoryFragmentDirections.actionChatHistoryFragmentToChatbotFragment(chat.chatId)
+        findNavController().navigate(action)
     }
+    binding.recyclerView.apply {
+        layoutManager = LinearLayoutManager(requireContext())
+        adapter = this@ChatHistoryFragment.adapter
+        itemAnimator = SlideInUpAnimator().apply { addDuration = 200 }
+    }
+}
 
     private fun setupObservers() {
-        viewModel.chats.observe(viewLifecycleOwner) { chats: List<ChatListResponse.ChatListItem> ->
+        viewModel.chats.observe(viewLifecycleOwner) { chats: List<ChatHistoryItem> ->
             Log.d("ChatHistoryFragment", "Received ${chats.size} chats")
             adapter.submitList(chats)
             binding.textView.visibility = if (chats.isEmpty()) View.VISIBLE else View.GONE

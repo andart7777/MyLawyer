@@ -7,22 +7,22 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.mylawyer.data.model.ChatListItem
+import com.example.mylawyer.data.model.ChatHistoryItem
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 class ChatAdapter(
-    private val onChatClick: (ChatListItem) -> Unit
-) : ListAdapter<ChatListItem, ChatAdapter.ChatViewHolder>(ChatDiffCallback()) {
+    private val onChatClick: (ChatHistoryItem) -> Unit
+) : ListAdapter<ChatHistoryItem, ChatAdapter.ChatViewHolder>(ChatDiffCallback()) {
 
     inner class ChatViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val titleTextView: TextView = view.findViewById(R.id.titleTextView)
         val lastMessageTextView: TextView = view.findViewById(R.id.lastMessageTextView)
         val timestampTextView: TextView = view.findViewById(R.id.timestampTextView)
 
-        fun bind(chat: ChatListItem) {
+        fun bind(chat: ChatHistoryItem) {
             titleTextView.text = chat.title
-            lastMessageTextView.text = chat.lastMessage ?: "No messages"
+            lastMessageTextView.text = chat.lastMessage
             timestampTextView.text = formatTimestamp(chat.timestamp)
             itemView.setOnClickListener { onChatClick(chat) }
         }
@@ -49,12 +49,12 @@ class ChatAdapter(
         holder.bind(getItem(position))
     }
 
-    class ChatDiffCallback : DiffUtil.ItemCallback<ChatListItem>() {
-        override fun areItemsTheSame(oldItem: ChatListItem, newItem: ChatListItem): Boolean {
+    class ChatDiffCallback : DiffUtil.ItemCallback<ChatHistoryItem>() {
+        override fun areItemsTheSame(oldItem: ChatHistoryItem, newItem: ChatHistoryItem): Boolean {
             return oldItem.chatId == newItem.chatId
         }
 
-        override fun areContentsTheSame(oldItem: ChatListItem, newItem: ChatListItem): Boolean {
+        override fun areContentsTheSame(oldItem: ChatHistoryItem, newItem: ChatHistoryItem): Boolean {
             return oldItem == newItem
         }
     }

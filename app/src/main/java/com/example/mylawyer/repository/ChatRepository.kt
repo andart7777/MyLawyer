@@ -3,7 +3,7 @@ package com.example.mylawyer.repository
 import android.util.Log
 import com.example.mylawyer.data.api.ChatApi
 import com.example.mylawyer.data.model.ChatCreateRequest
-import com.example.mylawyer.data.model.ChatListResponse
+import com.example.mylawyer.data.model.ChatHistoryItem
 import com.example.mylawyer.data.model.ChatRequest
 import com.example.mylawyer.data.model.ChatResponse
 import com.example.mylawyer.data.model.NewChatResponse
@@ -41,12 +41,12 @@ class ChatRepository(private val apiService: ChatApi) {
         }
     }
 
-    suspend fun getChats(userId: UUID): Result<ChatListResponse> {
+    suspend fun getChats(userId: UUID): Result<List<ChatHistoryItem>> {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d("ChatRepository", "Fetching chats for user_id=$userId")
                 val response = apiService.getChats(userId)
-                Log.d("ChatRepository", "Received chats: ${response.chats.size}")
+                Log.d("ChatRepository", "Received chats: ${response.size}")
                 Result.success(response)
             } catch (e: Exception) {
                 Log.e("ChatRepository", "Error fetching chats: ${e.message}", e)
