@@ -1,10 +1,10 @@
 package com.example.mylawyer.data.model
 
-import java.util.UUID
+import com.google.gson.annotations.SerializedName
 
 data class ChatHistoryItem(
-    val chatId: UUID,
-    val title: String,
-    val lastMessage: String,
-    val timestamp: String
+    @SerializedName("id") val chatId: String,
+    @SerializedName("title") val title: String,
+    @SerializedName("last_message") val lastMessage: String?,
+    @SerializedName("timestamp") val timestamp: String
 )

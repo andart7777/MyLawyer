@@ -14,7 +14,7 @@
             app:destination="@id/chatHistoryFragment" />
         <argument
             android:name="chatId"
-            app:argType="java.util.UUID"
+            app:argType="string"
             app:nullable="true"
             android:defaultValue="@null" />
     </fragment>
@@ -39,7 +39,7 @@
             app:destination="@id/chatbotFragment">
             <argument
                 android:name="chatId"
-                app:argType="java.util.UUID"
+                app:argType="string"
                 app:nullable="true"
                 android:defaultValue="@null" />
         </action>

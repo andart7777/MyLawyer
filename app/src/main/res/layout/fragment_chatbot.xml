@@ -25,10 +25,22 @@
         android:text="Чат-Бот"
         android:textSize="24sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@+id/recyclerView"
+        app:layout_constraintBottom_toTopOf="@+id/chatLoadingProgressBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/recyclerView" />
+
+    <ProgressBar
+        android:id="@+id/chatLoadingProgressBar"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:indeterminate="true"
+        android:theme="@style/Widget.AppCompat.ProgressBar"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/recyclerView"
+        app:layout_constraintEnd_toEndOf="@+id/textView"
+        app:layout_constraintStart_toStartOf="@+id/textView"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
 
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/typingAnimation"
@@ -42,7 +54,6 @@
         app:lottie_autoPlay="true"
         app:lottie_fileName="typing_dots.json"
         app:lottie_loop="true" />
-
 
     <FrameLayout
         android:id="@+id/frameLayout"
@@ -81,7 +92,6 @@
             android:src="@drawable/ic_send_chat" />
     </FrameLayout>
 
-
     <ImageButton
         android:id="@+id/btChatHistory"
         android:layout_width="wrap_content"
@@ -102,18 +112,5 @@
         android:src="@drawable/ic_new_chat"
         app:layout_constraintEnd_toStartOf="@+id/btChatHistory"
         app:layout_constraintTop_toTopOf="@+id/btChatHistory" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:indeterminate="true"
-        android:theme="@style/Widget.AppCompat.ProgressBar"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
