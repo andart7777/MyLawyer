@@ -9,10 +9,9 @@
 
     <TextView
         android:id="@+id/textMessage"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_bot_message"
-        android:maxWidth="250dp"
         android:padding="10dp"
         android:text="Пример текста"
         android:textColor="@android:color/black"
@@ -26,11 +25,10 @@
         android:id="@+id/reactionContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
 
-        app:layout_constraintEnd_toEndOf="@id/textMessage"
-        app:layout_constraintStart_toStartOf="@id/textMessage"
-        app:layout_constraintTop_toBottomOf="@id/textMessage">
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="@+id/textMessage"
+        app:layout_constraintTop_toBottomOf="@+id/textMessage">
 
         <ImageButton
             android:id="@+id/imageButton"
