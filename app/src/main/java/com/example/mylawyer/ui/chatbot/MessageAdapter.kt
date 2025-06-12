@@ -16,20 +16,28 @@ import java.util.UUID
 
 data class Message(val text: String, val isUser: Boolean, val tempId: String = UUID.randomUUID().toString())
 
-class MessageAdapter :
-    ListAdapter<Message, MessageAdapter.MessageViewHolder>(MessageDiffCallback()) {
+class MessageAdapter : ListAdapter<Message, MessageAdapter.MessageViewHolder>(MessageDiffCallback()) {
+
+    companion object {
+        private const val VIEW_TYPE_USER = 1
+        private const val VIEW_TYPE_BOT = 2
+    }
 
     inner class MessageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val messageContainer: ConstraintLayout = view.findViewById(R.id.messageContainer)
         val textMessage: TextView = view.findViewById(R.id.textMessage)
-        val btnLike: ImageButton = view.findViewById(R.id.imageButton)
-        val btnDislike: ImageButton = view.findViewById(R.id.imageButton2)
-        val reactionContainer: View = view.findViewById(R.id.reactionContainer)
+        val btnLike: ImageButton? = view.findViewById(R.id.imageButton)
+        val btnDislike: ImageButton? = view.findViewById(R.id.imageButton2)
+        val reactionContainer: View? = view.findViewById(R.id.reactionContainer)
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return if (getItem(position).isUser) VIEW_TYPE_USER else VIEW_TYPE_BOT
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_message, parent, false)
+        val layoutId = if (viewType == VIEW_TYPE_USER) R.layout.item_user_message else R.layout.item_message
+        val view = LayoutInflater.from(parent.context).inflate(layoutId, parent, false)
         return MessageViewHolder(view)
     }
 
@@ -52,7 +60,6 @@ class MessageAdapter :
 
         if (message.isUser) {
             // Пользовательское сообщение – вправо
-            Log.d("MessageAdapter", "User message: ${message.text}")
             constraintSet.connect(
                 R.id.textMessage,
                 ConstraintSet.END,
@@ -61,10 +68,10 @@ class MessageAdapter :
                 8
             )
             holder.textMessage.setBackgroundResource(R.drawable.bg_user_message)
-            holder.reactionContainer.visibility = View.GONE
+            Log.d("MessageAdapter", "User message: ${message.text}")
+            holder.reactionContainer?.visibility = View.GONE
         } else {
             // Бот – влево
-            Log.d("MessageAdapter", "Bot message: ${message.text}")
             constraintSet.connect(
                 R.id.textMessage,
                 ConstraintSet.START,
@@ -73,7 +80,13 @@ class MessageAdapter :
                 8
             )
             holder.textMessage.setBackgroundResource(R.drawable.bg_bot_message)
-            holder.reactionContainer.visibility = View.VISIBLE
+            Log.d("MessageAdapter", "Bot message: ${message.text}")
+            holder.btnLike?.setOnClickListener {
+                Log.d("MessageAdapter", "Лайк для сообщения: ${message.text}")
+            }
+            holder.btnDislike?.setOnClickListener {
+                Log.d("MessageAdapter", "Дизлайк для сообщения: ${message.text}")
+            }
         }
 
         constraintSet.applyTo(holder.messageContainer)
