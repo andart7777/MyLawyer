@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mylawyer.data.model.ReactionRequest
 import com.example.mylawyer.data.model.ChatCreateRequest
 import com.example.mylawyer.data.model.ChatHistoryItem
 import com.example.mylawyer.data.model.ChatRequest
@@ -13,14 +14,18 @@ import com.example.mylawyer.data.model.ChatResponse
 import com.example.mylawyer.data.model.Message
 import com.example.mylawyer.repository.ChatRepository
 import com.example.mylawyer.utils.Event
+import com.example.mylawyer.utils.ReactionManager
 import com.example.mylawyer.utils.UserIdManager
 import kotlinx.coroutines.launch
 import java.util.UUID
+
+data class ReactionUpdate(val messageId: Int, val reaction: Int)
 
 class ChatViewModel(
     private val repository: ChatRepository,
     private val context: Context
 ) : ViewModel() {
+
     private val _messages = MutableLiveData<List<ChatResponse>>()
     val messages: LiveData<List<ChatResponse>> get() = _messages
 
@@ -41,6 +46,10 @@ class ChatViewModel(
 
     private val _isWaitingForBotResponse = MutableLiveData<Boolean>()
     val isWaitingForBotResponse: LiveData<Boolean> get() = _isWaitingForBotResponse
+
+    // Новое LiveData для обновления реакции
+    private val _reactionUpdate = MutableLiveData<Event<ReactionUpdate>>()
+    val reactionUpdate: LiveData<Event<ReactionUpdate>> get() = _reactionUpdate
 
     init {
         // Загружаем сохранённый chatId
@@ -112,6 +121,24 @@ class ChatViewModel(
         }
     }
 
+    fun sendReaction(messageId: Int, reaction: Int) {
+        viewModelScope.launch {
+            Log.d("ChatViewModel", "Начало отправки реакции: messageId=$messageId, reaction=$reaction")
+            val userId = UserIdManager.getUserId(context).toString()
+            val request = ReactionRequest(messageId, userId, reaction)
+            try {
+                val response = repository.sendReaction(request)
+                Log.d("ChatViewModel", "Реакция отправлена успешно: $response")
+                ReactionManager.saveReaction(context, messageId, reaction)
+                // Отправляем событие обновления реакции
+                _reactionUpdate.postValue(Event(ReactionUpdate(messageId, reaction)))
+            } catch (e: Exception) {
+                Log.e("ChatViewModel", "Ошибка отправки реакции: ${e.message}", e)
+                _error.postValue(Event("Не удалось отправить реакцию: ${e.message}"))
+            }
+        }
+    }
+
     fun loadChatMessages(chatId: String) {
         viewModelScope.launch {
             _isLoadingMessages.postValue(true)
@@ -120,10 +147,14 @@ class ChatViewModel(
             val result = repository.getChatMessages(chatId, userId)
             result.onSuccess { messages ->
                 Log.d("ChatViewModel", "Получено сообщений: ${messages.size}")
-                _chatMessages.postValue(Event(messages))
+                // Добавляем локальные реакции к сообщениям
+                val updatedMessages = messages.map { message ->
+                    message.copy(reaction = ReactionManager.getReaction(context, message.id ?: 0))
+                }
+                _chatMessages.postValue(Event(updatedMessages))
             }.onFailure { exception ->
                 Log.e("ChatViewModel", "Ошибка загрузки: ${exception.message}", exception)
-                _error.postValue(Event("Не удалось загрузить сообщения: ${exception.message}"))
+                _error.postValue(Event("Ошибка при загрузке сообщений: ${exception.message}"))
             }
             _isLoadingMessages.postValue(false)
         }
