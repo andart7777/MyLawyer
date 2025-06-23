@@ -13,5 +13,6 @@ data class Message(
     @SerializedName("metadata") val metadata: Map<String, Any>? = null,
     val text: String? = null,
     val isUser: Boolean = false,
-    val tempId: String = UUID.randomUUID().toString()
+    val tempId: String = UUID.randomUUID().toString(),
+    val reaction: Int = 0 // 0 - нет реакции, 1 - лайк, 2 - дизлайк
 )

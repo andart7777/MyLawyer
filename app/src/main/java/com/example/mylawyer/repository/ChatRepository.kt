@@ -10,6 +10,7 @@ import com.example.mylawyer.data.model.Message
 import com.example.mylawyer.data.model.NewChatResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.example.mylawyer.data.model.ReactionRequest
 
 class ChatRepository(private val apiService: ChatApi) {
     suspend fun sendMessage(request: ChatRequest): Result<ChatResponse> {
@@ -24,6 +25,20 @@ class ChatRepository(private val apiService: ChatApi) {
                 Result.success(response)
             } catch (e: Exception) {
                 Log.e("ChatRepository", "Ошибка отправки сообщения: ${e.message}", e)
+                Result.failure(e)
+            }
+        }
+    }
+
+    suspend fun sendReaction(request: ReactionRequest): Result<Map<String, String>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.d("ChatRepository", "Отправка реакции: $request")
+                val response = apiService.sendReaction(request)
+                Log.d("ChatRepository", "Ответ на реакцию: $response")
+                Result.success(response)
+            } catch (e: Exception) {
+                Log.e("ChatRepository", "Ошибка отправки реакции: ${e.message}", e)
                 Result.failure(e)
             }
         }

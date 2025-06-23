@@ -12,6 +12,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mylawyer.R
 import com.example.mylawyer.data.api.RetrofitInstance
+import com.example.mylawyer.data.model.Message
 import com.example.mylawyer.databinding.FragmentChatbotBinding
 import com.example.mylawyer.repository.ChatRepository
 import com.example.mylawyer.utils.Event
@@ -47,9 +48,14 @@ class ChatbotFragment : Fragment() {
         setupNewChatButton()
 
         // Восстанавливаем chatId из savedInstanceState или SharedPreferences
-        val savedChatId = savedInstanceState?.getString("chatId") ?: UserIdManager.getCurrentChatId(requireContext())
+        val savedChatId = savedInstanceState?.getString("chatId") ?: UserIdManager.getCurrentChatId(
+            requireContext()
+        )
         if (savedChatId != null && savedChatId == viewModel.currentChatId.value) {
-            Log.d("ChatbotFragment", "Восстановлен chatId: $savedChatId, используем кэшированные сообщения")
+            Log.d(
+                "ChatbotFragment",
+                "Восстановлен chatId: $savedChatId, используем кэшированные сообщения"
+            )
             adapter.submitList(localMessages.toList())
             updateTextViewVisibility()
         } else {
@@ -84,7 +90,36 @@ class ChatbotFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        adapter = MessageAdapter()
+        adapter = MessageAdapter(
+            onLikeClick = { message ->
+                Log.d("ChatbotFragment", "Лайк нажат для сообщения: id=${message.id}, reaction=${message.reaction}")
+                message.id?.let { id ->
+                    val newReaction = if (message.reaction == 1) 0 else 1
+                    // Временно обновляем локально для мгновенного UI-отклика
+                    val index = localMessages.indexOfFirst { it.id == id }
+                    if (index != -1) {
+                        localMessages[index] = localMessages[index].copy(reaction = newReaction)
+                        updateAdapter()
+                    }
+                    Log.d("ChatbotFragment", "Вызываем sendReaction: id=$id, newReaction=$newReaction")
+                    viewModel.sendReaction(id, newReaction)
+                } ?: Log.d("ChatbotFragment", "ID сообщения отсутствует: ${message.text}")
+            },
+            onDislikeClick = { message ->
+                Log.d("ChatbotFragment", "Дизлайк нажат для сообщения: id=${message.id}, reaction=${message.reaction}")
+                message.id?.let { id ->
+                    val newReaction = if (message.reaction == 2) 0 else 2
+                    // Временно обновляем локально для мгновенного UI-отклика
+                    val index = localMessages.indexOfFirst { it.id == id }
+                    if (index != -1) {
+                        localMessages[index] = localMessages[index].copy(reaction = newReaction)
+                        updateAdapter()
+                    }
+                    Log.d("ChatbotFragment", "Вызываем sendReaction: id=$id, newReaction=$newReaction")
+                    viewModel.sendReaction(id, newReaction)
+                } ?: Log.d("ChatbotFragment", "ID сообщения отсутствует: ${message.text}")
+            }
+        )
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext()).apply {
                 stackFromEnd = true
@@ -100,7 +135,13 @@ class ChatbotFragment : Fragment() {
                 val lastResponse = responses.last()
                 if (!localMessages.any { it.text == lastResponse.response && !it.isUser }) {
                     lastResponse.response?.let { response ->
-                        localMessages.add(Message(response, false))
+                        localMessages.add(
+                            Message(
+                                text = response,
+                                isUser = false,
+                                botResponse = response
+                            )
+                        )
                         updateAdapter()
                     }
                 }
@@ -114,11 +155,25 @@ class ChatbotFragment : Fragment() {
                 val lastUserMessage = localMessages.lastOrNull { it.isUser }
                 val newMessages = mutableListOf<Message>()
                 messages.forEach { message ->
-                    message.userMessage?.takeIf { it.isNotEmpty() }?.let {
-                        newMessages.add(Message(it, true))
+                    message.userMessage?.takeIf { it.isNotEmpty() }?.let { userMsg ->
+                        newMessages.add(
+                            Message(
+                                text = userMsg,
+                                isUser = true,
+                                userMessage = userMsg
+                            )
+                        )
                     }
-                    message.botResponse?.takeIf { it.isNotEmpty() }?.let {
-                        newMessages.add(Message(it, false))
+                    message.botResponse?.takeIf { it.isNotEmpty() }?.let { botMsg ->
+                        newMessages.add(
+                            Message(
+                                id = message.id,
+                                text = botMsg,
+                                isUser = false,
+                                botResponse = botMsg,
+                                reaction = message.reaction
+                            )
+                        )
                     }
                 }
                 if (lastUserMessage != null && !newMessages.any { it.text == lastUserMessage.text && it.isUser }) {
@@ -131,10 +186,28 @@ class ChatbotFragment : Fragment() {
             }
         }
 
+        // Наблюдатель за обновлением реакции
+        viewModel.reactionUpdate.observe(viewLifecycleOwner) { event ->
+            event.getContentIfNotHandled()?.let { reactionUpdate ->
+                Log.d("ChatbotFragment", "Обновление реакции: messageId=${reactionUpdate.messageId}, reaction=${reactionUpdate.reaction}")
+                val index = localMessages.indexOfFirst { it.id == reactionUpdate.messageId }
+                if (index != -1) {
+                    localMessages[index] = localMessages[index].copy(reaction = reactionUpdate.reaction)
+                    updateAdapter()
+                } else {
+                    Log.w("ChatbotFragment", "Сообщение с id=${reactionUpdate.messageId} не найдено в localMessages")
+                }
+            }
+        }
+
         viewModel.error.observe(viewLifecycleOwner) { event ->
             event.getContentIfNotHandled()?.let { error ->
                 Log.e("ChatbotFragment", "Ошибка: $error")
-                android.widget.Toast.makeText(context, "Ошибка: $error", android.widget.Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(
+                    context,
+                    "Ошибка: $error",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
             }
         }
 
@@ -157,7 +230,13 @@ class ChatbotFragment : Fragment() {
             val text = binding.edTextMessage.text.toString().trim()
             if (text.isNotEmpty()) {
                 Log.d("ChatbotFragment", "Отправка сообщения: $text")
-                localMessages.add(Message(text, true))
+                localMessages.add(
+                    Message(
+                        text = text,
+                        isUser = true,
+                        userMessage = text
+                    )
+                )
                 updateAdapter()
                 viewModel.sendMessage(text)
                 binding.edTextMessage.text.clear()
@@ -182,10 +261,10 @@ class ChatbotFragment : Fragment() {
     }
 
     private fun updateAdapter() {
+        Log.d("ChatbotFragment", "localMessages: ${localMessages.map { "id=${it.id}, text=${it.text}, reaction=${it.reaction}" }}")
         adapter.submitList(localMessages.toList()) {
-            binding.recyclerView.post {
-                binding.recyclerView.scrollToPosition(localMessages.size - 1)
-            }
+            Log.d("ChatbotFragment", "Адаптер обновлён, сообщений: ${localMessages.size}")
+            binding.recyclerView.scrollToPosition(localMessages.size - 1)
         }
     }
 

@@ -6,6 +6,7 @@ import com.example.mylawyer.data.model.ChatRequest
 import com.example.mylawyer.data.model.ChatResponse
 import com.example.mylawyer.data.model.Message
 import com.example.mylawyer.data.model.NewChatResponse
+import com.example.mylawyer.data.model.ReactionRequest
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -34,4 +35,7 @@ interface ChatApi {
         @Path("chat_id") chatId: String,
         @Query("user_id") userId: String
     ): Map<String, String>
+
+    @POST("like")
+    suspend fun sendReaction(@Body request: ReactionRequest): Map<String, String>
 }
