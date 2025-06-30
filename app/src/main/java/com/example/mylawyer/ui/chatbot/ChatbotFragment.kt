@@ -11,14 +11,19 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mylawyer.R
+import com.example.mylawyer.ads.BannerAds
 import com.example.mylawyer.data.api.RetrofitInstance
 import com.example.mylawyer.data.model.Message
 import com.example.mylawyer.databinding.FragmentChatbotBinding
 import com.example.mylawyer.repository.ChatRepository
-import com.example.mylawyer.utils.Event
 import com.example.mylawyer.utils.UserIdManager
 import com.example.mylawyer.viewmodel.ChatViewModelFactory
+import com.yandex.mobile.ads.banner.BannerAdEventListener
+import com.yandex.mobile.ads.banner.BannerAdSize
+import com.yandex.mobile.ads.common.AdRequestError
+import com.yandex.mobile.ads.common.ImpressionData
 import jp.wasabeef.recyclerview.animators.SlideInUpAnimator
+
 
 class ChatbotFragment : Fragment() {
 
@@ -46,6 +51,7 @@ class ChatbotFragment : Fragment() {
         setupSendButton()
         setupChatHistoryButton()
         setupNewChatButton()
+        bannerAdsChatBot()
 
         // Восстанавливаем chatId из savedInstanceState или SharedPreferences
         val savedChatId = savedInstanceState?.getString("chatId") ?: UserIdManager.getCurrentChatId(
@@ -92,7 +98,10 @@ class ChatbotFragment : Fragment() {
     private fun setupRecyclerView() {
         adapter = MessageAdapter(
             onLikeClick = { message ->
-                Log.d("ChatbotFragment", "Лайк нажат для сообщения: id=${message.id}, reaction=${message.reaction}")
+                Log.d(
+                    "ChatbotFragment",
+                    "Лайк нажат для сообщения: id=${message.id}, reaction=${message.reaction}"
+                )
                 message.id?.let { id ->
                     val newReaction = if (message.reaction == 1) 0 else 1
                     // Временно обновляем локально для мгновенного UI-отклика
@@ -101,12 +110,18 @@ class ChatbotFragment : Fragment() {
                         localMessages[index] = localMessages[index].copy(reaction = newReaction)
                         updateAdapter()
                     }
-                    Log.d("ChatbotFragment", "Вызываем sendReaction: id=$id, newReaction=$newReaction")
+                    Log.d(
+                        "ChatbotFragment",
+                        "Вызываем sendReaction: id=$id, newReaction=$newReaction"
+                    )
                     viewModel.sendReaction(id, newReaction)
                 } ?: Log.d("ChatbotFragment", "ID сообщения отсутствует: ${message.text}")
             },
             onDislikeClick = { message ->
-                Log.d("ChatbotFragment", "Дизлайк нажат для сообщения: id=${message.id}, reaction=${message.reaction}")
+                Log.d(
+                    "ChatbotFragment",
+                    "Дизлайк нажат для сообщения: id=${message.id}, reaction=${message.reaction}"
+                )
                 message.id?.let { id ->
                     val newReaction = if (message.reaction == 2) 0 else 2
                     // Временно обновляем локально для мгновенного UI-отклика
@@ -115,7 +130,10 @@ class ChatbotFragment : Fragment() {
                         localMessages[index] = localMessages[index].copy(reaction = newReaction)
                         updateAdapter()
                     }
-                    Log.d("ChatbotFragment", "Вызываем sendReaction: id=$id, newReaction=$newReaction")
+                    Log.d(
+                        "ChatbotFragment",
+                        "Вызываем sendReaction: id=$id, newReaction=$newReaction"
+                    )
                     viewModel.sendReaction(id, newReaction)
                 } ?: Log.d("ChatbotFragment", "ID сообщения отсутствует: ${message.text}")
             }
@@ -189,13 +207,20 @@ class ChatbotFragment : Fragment() {
         // Наблюдатель за обновлением реакции
         viewModel.reactionUpdate.observe(viewLifecycleOwner) { event ->
             event.getContentIfNotHandled()?.let { reactionUpdate ->
-                Log.d("ChatbotFragment", "Обновление реакции: messageId=${reactionUpdate.messageId}, reaction=${reactionUpdate.reaction}")
+                Log.d(
+                    "ChatbotFragment",
+                    "Обновление реакции: messageId=${reactionUpdate.messageId}, reaction=${reactionUpdate.reaction}"
+                )
                 val index = localMessages.indexOfFirst { it.id == reactionUpdate.messageId }
                 if (index != -1) {
-                    localMessages[index] = localMessages[index].copy(reaction = reactionUpdate.reaction)
+                    localMessages[index] =
+                        localMessages[index].copy(reaction = reactionUpdate.reaction)
                     updateAdapter()
                 } else {
-                    Log.w("ChatbotFragment", "Сообщение с id=${reactionUpdate.messageId} не найдено в localMessages")
+                    Log.w(
+                        "ChatbotFragment",
+                        "Сообщение с id=${reactionUpdate.messageId} не найдено в localMessages"
+                    )
                 }
             }
         }
@@ -261,7 +286,10 @@ class ChatbotFragment : Fragment() {
     }
 
     private fun updateAdapter() {
-        Log.d("ChatbotFragment", "localMessages: ${localMessages.map { "id=${it.id}, text=${it.text}, reaction=${it.reaction}" }}")
+        Log.d(
+            "ChatbotFragment",
+            "localMessages: ${localMessages.map { "id=${it.id}, text=${it.text}, reaction=${it.reaction}" }}"
+        )
         adapter.submitList(localMessages.toList()) {
             Log.d("ChatbotFragment", "Адаптер обновлён, сообщений: ${localMessages.size}")
             binding.recyclerView.scrollToPosition(localMessages.size - 1)
@@ -276,6 +304,10 @@ class ChatbotFragment : Fragment() {
         binding.recyclerView.post {
             binding.recyclerView.scrollToPosition(adapter.itemCount - 1)
         }
+    }
+
+    private fun bannerAdsChatBot() {
+        BannerAds.initializeBanner(binding.bannerChatBot, requireContext())
     }
 
     override fun onDestroyView() {

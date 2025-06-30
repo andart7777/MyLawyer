@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "982601782418",
+    "project_id": "mylawyer-70cf8",
+    "storage_bucket": "mylawyer-70cf8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:982601782418:android:23966f7a1d2c9d0dca824b",
+        "android_client_info": {
+          "package_name": "com.example.mylawyer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSANAXyDJq1vl8ozGAquKhyEO_ciIAzRs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
