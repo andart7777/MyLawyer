@@ -12,6 +12,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mylawyer.ChatHistoryAdapter
 import com.example.mylawyer.R
+import com.example.mylawyer.ads.BannerAds
 import com.example.mylawyer.data.api.RetrofitInstance
 import com.example.mylawyer.data.model.ChatHistoryItem
 import com.example.mylawyer.databinding.FragmentChatHistoryBinding
@@ -41,15 +42,17 @@ class ChatHistoryFragment : Fragment() {
         setupRecyclerView()
         setupObservers()
         viewModel.loadChats()
+        bannerAdsChatHistory()
     }
 
     private fun setupRecyclerView() {
         adapter = ChatHistoryAdapter(
             onChatClick = { chat ->
                 Log.d("ChatHistoryFragment", "Выбран чат с chatId: ${chat.chatId}")
-                val action = ChatHistoryFragmentDirections.actionChatHistoryFragmentToChatbotFragment(
-                    chatId = chat.chatId
-                )
+                val action =
+                    ChatHistoryFragmentDirections.actionChatHistoryFragmentToChatbotFragment(
+                        chatId = chat.chatId
+                    )
                 findNavController().navigate(action)
             },
             onDeleteClick = { chat ->
@@ -71,28 +74,32 @@ class ChatHistoryFragment : Fragment() {
         }
     }
 
-private fun setupObservers() {
-    viewModel.chats.observe(viewLifecycleOwner) { chats: List<ChatHistoryItem> ->
-        Log.d("ChatHistoryFragment", "Получено чатов: ${chats.size}, данные: $chats")
-        if (chats.isEmpty()) {
-            Log.d("ChatHistoryFragment", "Список чатов пуст, возвращаемся в ChatbotFragment")
-            binding.textView.visibility = View.VISIBLE
-            findNavController().navigate(R.id.action_chatHistoryFragment_to_chatbotFragment)
-        } else {
-            adapter.submitList(chats)
-            binding.textView.visibility = View.GONE
+    private fun setupObservers() {
+        viewModel.chats.observe(viewLifecycleOwner) { chats: List<ChatHistoryItem> ->
+            Log.d("ChatHistoryFragment", "Получено чатов: ${chats.size}, данные: $chats")
+            if (chats.isEmpty()) {
+                Log.d("ChatHistoryFragment", "Список чатов пуст, возвращаемся в ChatbotFragment")
+                binding.textView.visibility = View.VISIBLE
+                findNavController().navigate(R.id.action_chatHistoryFragment_to_chatbotFragment)
+            } else {
+                adapter.submitList(chats)
+                binding.textView.visibility = View.GONE
+            }
+        }
+        viewModel.error.observe(viewLifecycleOwner) { event ->
+            event.getContentIfNotHandled()?.let { error ->
+                Log.e("ChatHistoryFragment", "Ошибка: $error")
+                Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+            }
+        }
+        viewModel.isLoadingMessages.observe(viewLifecycleOwner) { isLoading ->
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
     }
-    viewModel.error.observe(viewLifecycleOwner) { event ->
-        event.getContentIfNotHandled()?.let { error ->
-            Log.e("ChatHistoryFragment", "Ошибка: $error")
-            Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
-        }
+
+    private fun bannerAdsChatHistory() {
+        BannerAds.initializeBanner(binding.bannerChatHistory, requireContext())
     }
-    viewModel.isLoadingMessages.observe(viewLifecycleOwner) { isLoading ->
-        binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-    }
-}
 
     override fun onDestroyView() {
         super.onDestroyView()

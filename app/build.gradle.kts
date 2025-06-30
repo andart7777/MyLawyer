@@ -1,7 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    id("androidx.navigation.safeargs.kotlin") // Используем id без версии
+    id("androidx.navigation.safeargs.kotlin")
+    alias(libs.plugins.google.gms.google.services) // Используем id без версии
 }
 
 android {
@@ -40,16 +41,21 @@ android {
 }
 
 dependencies {
+    implementation(libs.mobileads)
+
     implementation(libs.logging.interceptor)
     implementation(libs.recyclerview.animators)
     implementation(libs.lottie.v600)
 
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
+
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
+
     implementation(libs.shimmer)
     implementation(libs.lottie)
 
@@ -58,6 +64,14 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.auth)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
