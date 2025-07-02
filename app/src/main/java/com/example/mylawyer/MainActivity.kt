@@ -1,11 +1,11 @@
 package com.example.mylawyer
 
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.mylawyer.data.api.RetrofitInstance
@@ -14,19 +14,21 @@ import com.example.mylawyer.repository.ChatRepository
 import com.example.mylawyer.ui.chatbot.ChatViewModel
 import com.example.mylawyer.ui.chatbot.ChatbotFragment
 import com.example.mylawyer.viewmodel.ChatViewModelFactory
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var chatViewModel: ChatViewModel
     private lateinit var navController: NavController
+    private lateinit var auth: FirebaseAuth
+    private lateinit var authStateListener: FirebaseAuth.AuthStateListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Инициализация ViewModel
+        auth = FirebaseAuth.getInstance()
         val repository = ChatRepository(RetrofitInstance.api)
         val viewModelFactory = ChatViewModelFactory(repository, this)
         chatViewModel = ViewModelProvider(this, viewModelFactory).get(ChatViewModel::class.java)
@@ -35,10 +37,38 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
         navController = navHostFragment.navController
 
-        // Привязка навигации к нижнему меню
+        // Настройка BottomNavigationView
         binding.bottomNav.setupWithNavController(navController)
 
-        // Обработка повторного нажатия
+        // Слушатель изменений авторизации
+        authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            val user = firebaseAuth.currentUser
+            if (user == null) {
+                // Пользователь не авторизован: переходим к AuthFragment и скрываем меню
+                navController.navigate(R.id.authFragment)
+                binding.bottomNav.visibility = View.GONE
+            } else {
+                // Пользователь авторизован: показываем меню (если не AuthFragment)
+                if (navController.currentDestination?.id != R.id.authFragment) {
+                    binding.bottomNav.visibility = View.VISIBLE
+                }
+            }
+        }
+        auth.addAuthStateListener(authStateListener)
+
+        // Слушатель изменений назначения для управления видимостью BottomNavigationView
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.authFragment -> binding.bottomNav.visibility = View.GONE
+                else -> {
+                    if (auth.currentUser != null) {
+                        binding.bottomNav.visibility = View.VISIBLE
+                    }
+                }
+            }
+        }
+
+        // Обработка повторного нажатия на элемент BottomNavigationView
         binding.bottomNav.setOnItemReselectedListener { item ->
             when (item.itemId) {
                 R.id.chatbotFragment -> {
@@ -67,5 +97,11 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Удаляем слушатель при уничтожении активности
+        auth.removeAuthStateListener(authStateListener)
     }
 }

@@ -1,23 +1,16 @@
 package com.example.mylawyer.utils
 
 import android.content.Context
-import java.util.UUID
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 object UserIdManager {
     private const val PREFS_NAME = "MyLawyerPrefs"
-    private const val KEY_USER_ID = "user_id"
     private const val KEY_CURRENT_CHAT_ID = "current_chat_id"
 
-    fun getUserId(context: Context): UUID {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val userIdString = prefs.getString(KEY_USER_ID, null)
-        return if (userIdString != null) {
-            UUID.fromString(userIdString)
-        } else {
-            val newUserId = UUID.randomUUID()
-            prefs.edit().putString(KEY_USER_ID, newUserId.toString()).apply()
-            newUserId
-        }
+    fun getUserId(context: Context): String {
+        val auth = Firebase.auth
+        return auth.currentUser?.uid ?: throw IllegalStateException("User not authenticated")
     }
 
     fun saveCurrentChatId(context: Context, chatId: String?) {
