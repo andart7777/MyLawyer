@@ -18,6 +18,8 @@ import com.example.mylawyer.data.model.ChatHistoryItem
 import com.example.mylawyer.databinding.FragmentChatHistoryBinding
 import com.example.mylawyer.repository.ChatRepository
 import com.example.mylawyer.viewmodel.ChatViewModelFactory
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import jp.wasabeef.recyclerview.animators.SlideInUpAnimator
 
 class ChatHistoryFragment : Fragment() {
@@ -39,9 +41,14 @@ class ChatHistoryFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // Проверка авторизации
+        if (Firebase.auth.currentUser == null) {
+            findNavController().navigate(R.id.action_chatHistoryFragment_to_authFragment)
+            return
+        }
         setupRecyclerView()
         setupObservers()
-        viewModel.loadChats()
+        viewModel.syncChats()
         bannerAdsChatHistory()
     }
 

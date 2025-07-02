@@ -1,5 +1,7 @@
 package com.example.mylawyer.data.api
 
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -16,9 +18,20 @@ object RetrofitInstance {
         }
         val client = OkHttpClient.Builder()
             .addInterceptor(logging)
-            .connectTimeout(30, TimeUnit.SECONDS) // Увеличиваем таймаут подключения
-            .readTimeout(30, TimeUnit.SECONDS)    // Увеличиваем таймаут чтения
-            .writeTimeout(30, TimeUnit.SECONDS)   // Увеличиваем таймаут записи
+            .addInterceptor { chain ->
+                val token = Firebase.auth.currentUser?.getIdToken(false)?.result?.token
+                val request = chain.request().newBuilder()
+                    .apply {
+                        if (token != null) {
+                            addHeader("Authorization", "Bearer $token")
+                        }
+                    }
+                    .build()
+                chain.proceed(request)
+            }
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
             .build()
 
         Retrofit.Builder()

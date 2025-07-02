@@ -121,4 +121,12 @@
         app:layout_constraintEnd_toStartOf="@+id/btChatHistory"
         app:layout_constraintTop_toTopOf="@+id/btChatHistory" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/signOutButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sign Out"
+        app:layout_constraintEnd_toStartOf="@+id/btNewChat"
+        app:layout_constraintTop_toTopOf="@+id/btNewChat" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

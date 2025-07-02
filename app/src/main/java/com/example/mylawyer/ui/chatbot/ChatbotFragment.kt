@@ -18,10 +18,8 @@ import com.example.mylawyer.databinding.FragmentChatbotBinding
 import com.example.mylawyer.repository.ChatRepository
 import com.example.mylawyer.utils.UserIdManager
 import com.example.mylawyer.viewmodel.ChatViewModelFactory
-import com.yandex.mobile.ads.banner.BannerAdEventListener
-import com.yandex.mobile.ads.banner.BannerAdSize
-import com.yandex.mobile.ads.common.AdRequestError
-import com.yandex.mobile.ads.common.ImpressionData
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import jp.wasabeef.recyclerview.animators.SlideInUpAnimator
 
 
@@ -46,11 +44,17 @@ class ChatbotFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // Проверка авторизации
+        if (Firebase.auth.currentUser == null) {
+            findNavController().navigate(R.id.action_chatbotFragment_to_authFragment)
+            return
+        }
         setupRecyclerView()
         setupObservers()
         setupSendButton()
         setupChatHistoryButton()
         setupNewChatButton()
+        setupSignOutButton()
         bannerAdsChatBot()
 
         // Восстанавливаем chatId из savedInstanceState или SharedPreferences
@@ -282,6 +286,13 @@ class ChatbotFragment : Fragment() {
             localMessages.clear()
             updateAdapter()
             updateTextViewVisibility()
+        }
+    }
+
+    private fun setupSignOutButton() {
+        binding.signOutButton.setOnClickListener {
+            Firebase.auth.signOut()
+            findNavController().navigate(R.id.action_chatbotFragment_to_authFragment)
         }
     }
 

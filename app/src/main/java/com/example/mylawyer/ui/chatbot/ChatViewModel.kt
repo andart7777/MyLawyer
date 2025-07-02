@@ -16,8 +16,10 @@ import com.example.mylawyer.repository.ChatRepository
 import com.example.mylawyer.utils.Event
 import com.example.mylawyer.utils.ReactionManager
 import com.example.mylawyer.utils.UserIdManager
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
-import java.util.UUID
+
 
 data class ReactionUpdate(val messageId: Int, val reaction: Int)
 
@@ -57,17 +59,16 @@ class ChatViewModel(
         if (savedChatId != null) {
             _currentChatId.postValue(savedChatId)
         }
-        // Загружаем чаты без индикатора загрузки на старте
-        loadChats(initialLoad = true)
+        syncChats()
     }
 
     fun sendMessage(message: String) {
         viewModelScope.launch {
             _isWaitingForBotResponse.postValue(true)
-            val userId = UserIdManager.getUserId(context).toString()
-            val currentChatId = _currentChatId.value ?: UUID.randomUUID().toString().also {
-                _currentChatId.postValue(it)
-                UserIdManager.saveCurrentChatId(context, it)
+            val userId = UserIdManager.getUserId(context)
+            val currentChatId = _currentChatId.value ?: run {
+                val newChatId = createNewChatSync()
+                newChatId ?: return@launch
             }
             val result = repository.sendMessage(ChatRequest(userId, message))
             result.onSuccess { response ->
@@ -94,7 +95,7 @@ class ChatViewModel(
     fun createNewChat() {
         viewModelScope.launch {
             _isLoadingMessages.postValue(true)
-            val userId = UserIdManager.getUserId(context).toString()
+            val userId = UserIdManager.getUserId(context)
             val request = ChatCreateRequest(userId = userId, title = null)
             val result = repository.createNewChat(request)
             result.onSuccess { response ->
@@ -111,6 +112,16 @@ class ChatViewModel(
         }
     }
 
+    private suspend fun createNewChatSync(): String? {
+        val userId = UserIdManager.getUserId(context)
+        val request = ChatCreateRequest(userId = userId, title = null)
+        val result = repository.createNewChat(request)
+        return result.getOrNull()?.chatId?.also {
+            _currentChatId.postValue(it)
+            UserIdManager.saveCurrentChatId(context, it)
+        }
+    }
+
     fun setCurrentChatId(chatId: String) {
         Log.d("ChatViewModel", "Устанавливаем chatId: $chatId")
         if (_currentChatId.value != chatId) {
@@ -124,7 +135,7 @@ class ChatViewModel(
     fun sendReaction(messageId: Int, reaction: Int) {
         viewModelScope.launch {
             Log.d("ChatViewModel", "Начало отправки реакции: messageId=$messageId, reaction=$reaction")
-            val userId = UserIdManager.getUserId(context).toString()
+            val userId = UserIdManager.getUserId(context)
             val request = ReactionRequest(messageId, userId, reaction)
             try {
                 val response = repository.sendReaction(request)
@@ -143,7 +154,7 @@ class ChatViewModel(
         viewModelScope.launch {
             _isLoadingMessages.postValue(true)
             Log.d("ChatViewModel", "Загрузка сообщений для chatId: $chatId")
-            val userId = UserIdManager.getUserId(context).toString()
+            val userId = UserIdManager.getUserId(context)
             val result = repository.getChatMessages(chatId, userId)
             result.onSuccess { messages ->
                 Log.d("ChatViewModel", "Получено сообщений: ${messages.size}")
@@ -160,12 +171,10 @@ class ChatViewModel(
         }
     }
 
-    fun loadChats(initialLoad: Boolean = false) {
+    fun syncChats() {
         viewModelScope.launch {
-            if (!initialLoad) {
-                _isLoadingMessages.postValue(true)
-            }
-            val userId = UserIdManager.getUserId(context).toString()
+            if (Firebase.auth.currentUser == null) return@launch
+            val userId = UserIdManager.getUserId(context)
             val result = repository.getChats(userId)
             result.onSuccess { chats ->
                 Log.d("ChatViewModel", "Получено чатов: ${chats.size}")
@@ -181,16 +190,13 @@ class ChatViewModel(
                 Log.e("ChatViewModel", "Ошибка загрузки чатов: ${exception.message}", exception)
                 _error.postValue(Event("Не удалось загрузить чаты: ${exception.message}"))
             }
-            if (!initialLoad) {
-                _isLoadingMessages.postValue(false)
-            }
         }
     }
 
     fun initializeDefaultChat() {
         viewModelScope.launch {
             if (_currentChatId.value == null) {
-                val userId = UserIdManager.getUserId(context).toString()
+                val userId = UserIdManager.getUserId(context)
                 val result = repository.getChats(userId)
                 result.onSuccess { chats ->
                     if (chats.isNotEmpty()) {
@@ -215,7 +221,7 @@ class ChatViewModel(
     fun deleteChat(chatId: String) {
         viewModelScope.launch {
             _isLoadingMessages.postValue(true)
-            val userId = UserIdManager.getUserId(context).toString()
+            val userId = UserIdManager.getUserId(context)
             val result = repository.deleteChat(chatId, userId)
             result.onSuccess { response ->
                 Log.d("ChatViewModel", "Чат удален: $response")
@@ -225,7 +231,7 @@ class ChatViewModel(
                     _messages.postValue(emptyList())
                     _chatMessages.postValue(Event(emptyList()))
                 }
-                loadChats()
+                syncChats()
             }.onFailure { exception ->
                 Log.e("ChatViewModel", "Ошибка удаления: ${exception.message}", exception)
                 _error.postValue(Event("Не удалось удалить чат: ${exception.message}"))
