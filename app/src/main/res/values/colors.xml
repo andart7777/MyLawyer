@@ -2,4 +2,17 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="background_color">#F5F5F5</color>
+    <color name="background_color_settings">#FDF6FE</color>
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="accent_color">#FF5722</color>
+
+    <!-- Темная тема -->
+    <color name="background_color_dark">#121212</color>
+    <color name="text_primary_dark">#FFFFFF</color>
+    <color name="text_secondary_dark">#B3B3B3</color>
+
+    <!-- Дополнительные цвета -->
+    <color name="transparent">#00000000</color>
 </resources>

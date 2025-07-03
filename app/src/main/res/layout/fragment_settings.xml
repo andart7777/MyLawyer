@@ -1,24 +1,577 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragment.SettingsFragment">
+    android:background="@color/background_color_settings"
+    android:fillViewport="true">
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="175dp"
-        android:layout_marginTop="342dp"
-        android:layout_marginEnd="178dp"
-        android:layout_marginBottom="370dp"
-        android:text="Настройки"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:paddingHorizontal="16dp">
+
+        <!-- Header -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/header_layout"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/btn_back"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/back"
+                android:src="@drawable/ic_arrow_back"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@color/text_primary" />
+
+            <TextView
+                android:id="@+id/tv_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Настройки"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Профиль Section -->
+        <TextView
+            android:id="@+id/tv_profile_section"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Профиль"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/header_layout" />
+
+        <!-- Email Item -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_email"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginStart="3dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="3dp"
+            app:cardBackgroundColor="#FAFAFA"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="1dp"
+            app:cardPreventCornerOverlap="false"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_profile_section">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_email"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:text="Email"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="an*****77@gmail.com"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Google Item -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_google"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginStart="3dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="3dp"
+            app:cardBackgroundColor="#FAFAFA"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="1dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/card_email">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_google" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:text="Google"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="Подключено"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Data Management Item -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_data_management"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginStart="3dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="3dp"
+            app:cardBackgroundColor="#FAFAFA"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="1dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/card_google">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_database"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:text="Управление данными"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/text_secondary" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Приложение Section -->
+        <TextView
+            android:id="@+id/tv_app_section"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="Приложение"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/card_data_management" />
+
+        <!-- Language Item -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_language"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginStart="3dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="3dp"
+            app:cardBackgroundColor="#FAFAFA"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="1dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_app_section">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_language"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:text="Язык"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="русский"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/text_secondary" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Appearance Item -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_appearance"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginStart="3dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="3dp"
+            app:cardBackgroundColor="#FAFAFA"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="1dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/card_language">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_palette"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:text="Внешний вид"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="Система"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/text_secondary" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- О программе Section -->
+        <TextView
+            android:id="@+id/tv_about_section"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="О программе"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/card_appearance" />
+
+        <!-- Check Updates Item -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_check_updates"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginStart="3dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="3dp"
+            app:cardBackgroundColor="#FAFAFA"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="1dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_about_section">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_update"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:text="Проверить обновления"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="1.2.2(80)"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/text_secondary" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Terms of Service Item -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_terms"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginStart="3dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="3dp"
+            app:cardBackgroundColor="#FAFAFA"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="1dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/card_check_updates">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_description"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:text="Соглашение об обслуживании"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/text_secondary" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Contact Us Item -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_contact"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginStart="3dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="3dp"
+            app:cardBackgroundColor="#FAFAFA"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="1dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/card_terms">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_chat"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:text="Свяжитесь с нами"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/text_secondary" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Logout Item -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_logout"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginStart="3dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="3dp"
+            app:cardBackgroundColor="#FAFAFA"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="1dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/card_contact">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_logout"
+                    app:tint="@color/accent_color" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:text="Выйти"
+                    android:textColor="@color/accent_color"
+                    android:textSize="16sp" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Footer Text -->
+        <TextView
+            android:id="@+id/tv_footer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="24dp"
+            android:gravity="center"
+            android:text="Сгенерировано ИИ, только для справки. Используйте законно."
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/card_logout" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

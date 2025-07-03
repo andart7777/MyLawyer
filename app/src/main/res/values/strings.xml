@@ -2,4 +2,31 @@
     <string name="app_name">MyLawyer</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="back">Назад</string>
+    <string name="settings">Настройки</string>
+
+    <!-- Профиль -->
+    <string name="profile">Профиль</string>
+    <string name="email">Email</string>
+    <string name="google">Google</string>
+    <string name="connected">Подключено</string>
+    <string name="data_management">Управление данными</string>
+
+    <!-- Приложение -->
+    <string name="application">Приложение</string>
+    <string name="language">Язык</string>
+    <string name="russian">русский</string>
+    <string name="appearance">Внешний вид</string>
+    <string name="system">Система</string>
+
+    <!-- О программе -->
+    <string name="about_app">О программе</string>
+    <string name="check_updates">Проверить обновления</string>
+    <string name="version">1.2.2(80)</string>
+    <string name="terms_of_service">Соглашение об обслуживании</string>
+    <string name="contact_us">Свяжитесь с нами</string>
+    <string name="logout">Выйти</string>
+
+    <!-- Футер -->
+    <string name="footer_text">Сгенерировано ИИ, только для справки. Используйте законно.</string>
 </resources>

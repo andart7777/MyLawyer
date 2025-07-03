@@ -29,8 +29,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         auth = FirebaseAuth.getInstance()
-        val repository = ChatRepository(RetrofitInstance.api)
-        val viewModelFactory = ChatViewModelFactory(repository, this)
+        val repository = ChatRepository(RetrofitInstance.createApi(this))
+        val viewModelFactory = ChatViewModelFactory(this)
         chatViewModel = ViewModelProvider(this, viewModelFactory).get(ChatViewModel::class.java)
 
         val navHostFragment =
