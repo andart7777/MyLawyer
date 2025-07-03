@@ -28,7 +28,7 @@ class ChatbotFragment : Fragment() {
     private var _binding: FragmentChatbotBinding? = null
     private val binding get() = _binding!!
     private val viewModel: ChatViewModel by viewModels {
-        ChatViewModelFactory(ChatRepository(RetrofitInstance.api), requireContext())
+        ChatViewModelFactory(requireContext())
     }
     private lateinit var adapter: MessageAdapter
     private val localMessages = mutableListOf<Message>()

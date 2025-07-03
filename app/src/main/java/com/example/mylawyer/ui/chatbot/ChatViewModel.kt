@@ -24,7 +24,9 @@ import kotlinx.coroutines.launch
 data class ReactionUpdate(val messageId: Int, val reaction: Int)
 
 class ChatViewModel(
+
     private val repository: ChatRepository,
+
     private val context: Context
 ) : ViewModel() {
 

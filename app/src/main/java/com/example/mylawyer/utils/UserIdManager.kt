@@ -3,6 +3,7 @@ package com.example.mylawyer.utils
 import android.content.Context
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.tasks.await
 
 object UserIdManager {
     private const val PREFS_NAME = "MyLawyerPrefs"
@@ -11,6 +12,14 @@ object UserIdManager {
     fun getUserId(context: Context): String {
         val auth = Firebase.auth
         return auth.currentUser?.uid ?: throw IllegalStateException("User not authenticated")
+    }
+
+    suspend fun getIdToken(context: Context): String? {
+        return try {
+            Firebase.auth.currentUser?.getIdToken(false)?.await()?.token
+        } catch (e: Exception) {
+            null
+        }
     }
 
     fun saveCurrentChatId(context: Context, chatId: String?) {

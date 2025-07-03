@@ -27,7 +27,7 @@ class ChatHistoryFragment : Fragment() {
     private var _binding: FragmentChatHistoryBinding? = null
     private val binding get() = _binding!!
     private val viewModel: ChatViewModel by viewModels {
-        ChatViewModelFactory(ChatRepository(RetrofitInstance.api), requireContext())
+        ChatViewModelFactory(requireContext())
     }
     private lateinit var adapter: ChatHistoryAdapter
 
