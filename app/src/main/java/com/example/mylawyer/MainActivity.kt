@@ -45,7 +45,6 @@ class MainActivity : AppCompatActivity() {
             val user = firebaseAuth.currentUser
             if (user == null) {
                 // Пользователь не авторизован: переходим к AuthFragment и скрываем меню
-                navController.navigate(R.id.authFragment)
                 binding.bottomNav.visibility = View.GONE
             } else {
                 // Пользователь авторизован: показываем меню (если не AuthFragment)
