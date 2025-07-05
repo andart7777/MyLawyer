@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -16,6 +17,7 @@ import com.example.mylawyer.data.api.RetrofitInstance
 import com.example.mylawyer.data.model.Message
 import com.example.mylawyer.databinding.FragmentChatbotBinding
 import com.example.mylawyer.repository.ChatRepository
+import com.example.mylawyer.utils.ReactionManager
 import com.example.mylawyer.utils.UserIdManager
 import com.example.mylawyer.viewmodel.ChatViewModelFactory
 import com.google.firebase.auth.ktx.auth
@@ -229,16 +231,16 @@ class ChatbotFragment : Fragment() {
             }
         }
 
-        viewModel.error.observe(viewLifecycleOwner) { event ->
-            event.getContentIfNotHandled()?.let { error ->
-                Log.e("ChatbotFragment", "Ошибка: $error")
-                android.widget.Toast.makeText(
-                    context,
-                    "Ошибка: $error",
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
-            }
+viewModel.error.observe(viewLifecycleOwner) { event ->
+    event.getContentIfNotHandled()?.let { error ->
+        if (error.contains("Требуется повторная авторизация")) {
+            Firebase.auth.signOut()
+            findNavController().navigate(R.id.action_chatbotFragment_to_authFragment)
+        } else {
+            Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
         }
+    }
+}
 
         viewModel.isWaitingForBotResponse.observe(viewLifecycleOwner) { isWaiting ->
             binding.typingAnimation.visibility = if (isWaiting) View.VISIBLE else View.GONE
@@ -291,6 +293,8 @@ class ChatbotFragment : Fragment() {
 
     private fun setupSignOutButton() {
         binding.signOutButton.setOnClickListener {
+            UserIdManager.clearCurrentChatId(requireContext())
+            ReactionManager.clearReactions(requireContext())
             Firebase.auth.signOut()
             findNavController().navigate(R.id.action_chatbotFragment_to_authFragment)
         }

@@ -13,22 +13,25 @@ import kotlinx.coroutines.withContext
 import com.example.mylawyer.data.model.ReactionRequest
 
 class ChatRepository(private val apiService: ChatApi) {
-    suspend fun sendMessage(request: ChatRequest): Result<ChatResponse> {
-        return withContext(Dispatchers.IO) {
-            try {
-                Log.d(
-                    "ChatRepository",
-                    "Отправка запроса: user_id=${request.userId}, message=${request.message}"
-                )
-                val response = apiService.sendMessage(request)
-                Log.d("ChatRepository", "Получен ответ: $response")
-                Result.success(response)
-            } catch (e: Exception) {
+suspend fun sendMessage(request: ChatRequest): Result<ChatResponse> {
+    return withContext(Dispatchers.IO) {
+        try {
+            val response = apiService.sendMessage(request)
+            Result.success(response)
+        } catch (e: retrofit2.HttpException) {
+            if (e.code() == 401) {
+                Log.e("ChatRepository", "Токен недействителен или отсутствует")
+                Result.failure(Exception("Требуется повторная авторизация"))
+            } else {
                 Log.e("ChatRepository", "Ошибка отправки сообщения: ${e.message}", e)
                 Result.failure(e)
             }
+        } catch (e: Exception) {
+            Log.e("ChatRepository", "Ошибка отправки сообщения: ${e.message}", e)
+            Result.failure(e)
         }
     }
+}
 
     suspend fun sendReaction(request: ReactionRequest): Result<Map<String, String>> {
         return withContext(Dispatchers.IO) {

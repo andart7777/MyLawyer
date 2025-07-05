@@ -43,7 +43,7 @@
 
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="com.example.mylawyer.fragment.SettingsFragment"
+        android:name="com.example.mylawyer.ui.settings.SettingsFragment"
         android:label="Настройки"
         tools:layout="@layout/fragment_settings">
         <action

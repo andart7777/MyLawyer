@@ -12,6 +12,14 @@
         android:layout_height="wrap_content"
         android:paddingHorizontal="16dp">
 
+        <com.yandex.mobile.ads.banner.BannerAdView
+            android:id="@+id/bannerSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <!-- Header -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/header_layout"
@@ -20,19 +28,7 @@
             android:layout_marginTop="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:id="@+id/btn_back"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/back"
-                android:src="@drawable/ic_arrow_back"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:tint="@color/text_primary" />
+            app:layout_constraintTop_toBottomOf="@id/bannerSettings">
 
             <TextView
                 android:id="@+id/tv_title"
@@ -521,6 +517,7 @@
             android:layout_marginStart="3dp"
             android:layout_marginTop="24dp"
             android:layout_marginEnd="3dp"
+            android:layout_marginBottom="24dp"
             app:cardBackgroundColor="#FAFAFA"
             app:cardCornerRadius="8dp"
             app:cardElevation="1dp"
@@ -529,6 +526,7 @@
             app:layout_constraintTop_toBottomOf="@id/card_contact">
 
             <LinearLayout
+                android:id="@+id/card_logout2"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?attr/selectableItemBackground"
