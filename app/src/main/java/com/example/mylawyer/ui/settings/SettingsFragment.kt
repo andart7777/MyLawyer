@@ -18,6 +18,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import android.content.Context
 import android.content.SharedPreferences
+import java.util.Locale
 
 class SettingsFragment : Fragment() {
 
@@ -89,7 +90,7 @@ class SettingsFragment : Fragment() {
     }
 
     private fun setupLanguageButton() {
-        binding.cardLanguage.setOnClickListener {
+        binding.cardLanguageLinear.setOnClickListener {
             showLanguageDialog()
         }
     }
@@ -113,9 +114,22 @@ class SettingsFragment : Fragment() {
         builder.show()
     }
 
+    private fun setLocale(language: String) {
+        val locale = when (language) {
+            "Русский" -> "ru"
+            "English" -> "en"
+            else -> "ru"
+        }
+        val config = resources.configuration
+        config.setLocale(Locale(locale))
+        resources.updateConfiguration(config, resources.displayMetrics)
+//        requireActivity().recreate() // Перезапуск активности для применения изменений
+    }
+
     private fun updateLanguageDisplay() {
         val currentLanguage = sharedPreferences.getString("language", "Русский")
-        binding.cardLanguage.findViewById<TextView>(R.id.language_display)?.text = currentLanguage
+        binding.languageDisplay.text = currentLanguage
+        currentLanguage?.let { setLocale(it) }
     }
 
     private fun bannerAdsSettings() {
