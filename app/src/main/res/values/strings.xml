@@ -2,6 +2,8 @@
     <string name="app_name">MyLawyer</string>
     <string name="back">Назад</string>
 
+    <string name="settings">Настройки</string>
+
     <!-- Профиль -->
     <string name="profile">Профиль</string>
     <string name="email">Email</string>
@@ -14,12 +16,12 @@
     <string name="language">Язык</string>
     <string name="russian">русский</string>
     <string name="appearance">Внешний вид</string>
-    <string name="system">Система</string>
+    <string name="system_theme">Система</string>
 
     <!-- О программе -->
     <string name="about_app">О программе</string>
     <string name="check_updates">Проверить обновления</string>
-    <string name="version">1.2.2(80)</string>
+    <string name="version">1.2</string>
     <string name="terms_of_service">Соглашение об обслуживании</string>
     <string name="contact_us">Свяжитесь с нами</string>
     <string name="logout">Выйти</string>

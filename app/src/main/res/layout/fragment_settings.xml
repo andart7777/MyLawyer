@@ -33,7 +33,7 @@
                 android:id="@+id/tv_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Настройки"
+                android:text="@string/settings"
                 android:textColor="@color/text_primary"
                 android:textSize="18sp"
                 android:textStyle="bold"
@@ -50,7 +50,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Профиль"
+            android:text="@string/profile"
             android:textColor="@color/text_secondary"
             android:textSize="14sp"
             app:layout_constraintStart_toStartOf="parent"
@@ -94,7 +94,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_weight="1"
-                    android:text="Email"
+                    android:text="@string/email"
                     android:textColor="@color/text_primary"
                     android:textSize="16sp" />
 
@@ -146,7 +146,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_weight="1"
-                    android:text="Google"
+                    android:text="@string/google"
                     android:textColor="@color/text_primary"
                     android:textSize="16sp" />
 
@@ -154,7 +154,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:text="Подключено"
+                    android:text="@string/connected"
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp" />
 
@@ -199,7 +199,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_weight="1"
-                    android:text="Управление данными"
+                    android:text="@string/data_management"
                     android:textColor="@color/text_primary"
                     android:textSize="16sp" />
 
@@ -218,7 +218,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
-            android:text="Приложение"
+            android:text="@string/application"
             android:textColor="@color/text_secondary"
             android:textSize="14sp"
             app:layout_constraintStart_toStartOf="parent"
@@ -240,6 +240,7 @@
             app:layout_constraintTop_toBottomOf="@id/tv_app_section">
 
             <LinearLayout
+                android:id="@+id/card_language_linear"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?attr/selectableItemBackground"
@@ -261,7 +262,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_weight="1"
-                    android:text="Язык"
+                    android:text="@string/language"
                     android:textColor="@color/text_primary"
                     android:textSize="16sp" />
 
@@ -270,7 +271,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:text="русский"
+                    android:text="@string/russian"
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp" />
 
@@ -320,7 +321,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_weight="1"
-                    android:text="Внешний вид"
+                    android:text="@string/appearance"
                     android:textColor="@color/text_primary"
                     android:textSize="16sp" />
 
@@ -328,7 +329,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:text="Система"
+                    android:text="@string/system_theme"
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp" />
 
@@ -347,7 +348,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
-            android:text="О программе"
+            android:text="@string/about_app"
             android:textColor="@color/text_secondary"
             android:textSize="14sp"
             app:layout_constraintStart_toStartOf="parent"
@@ -390,7 +391,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_weight="1"
-                    android:text="Проверить обновления"
+                    android:text="@string/check_updates"
                     android:textColor="@color/text_primary"
                     android:textSize="16sp" />
 
@@ -398,7 +399,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:text="1.1"
+                    android:text="@string/version"
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp" />
 
@@ -448,7 +449,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_weight="1"
-                    android:text="Соглашение об обслуживании"
+                    android:text="@string/terms_of_service"
                     android:textColor="@color/text_primary"
                     android:textSize="16sp" />
 
@@ -498,7 +499,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_weight="1"
-                    android:text="Свяжитесь с нами"
+                    android:text="@string/contact_us"
                     android:textColor="@color/text_primary"
                     android:textSize="16sp" />
 
@@ -550,7 +551,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_weight="1"
-                    android:text="Выйти"
+                    android:text="@string/logout"
                     android:textColor="@color/accent_color"
                     android:textSize="16sp" />
 
@@ -565,7 +566,7 @@
             android:layout_marginTop="32dp"
             android:layout_marginBottom="24dp"
             android:gravity="center"
-            android:text="Сгенерировано ИИ, только для справки. Используйте законно."
+            android:text="@string/footer_text"
             android:textColor="@color/text_secondary"
             android:textSize="12sp"
             app:layout_constraintBottom_toBottomOf="parent"
