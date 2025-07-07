@@ -56,7 +56,6 @@ class ChatbotFragment : Fragment() {
         setupSendButton()
         setupChatHistoryButton()
         setupNewChatButton()
-        setupSignOutButton()
         bannerAdsChatBot()
 
         // Восстанавливаем chatId из savedInstanceState или SharedPreferences
@@ -288,15 +287,6 @@ viewModel.error.observe(viewLifecycleOwner) { event ->
             localMessages.clear()
             updateAdapter()
             updateTextViewVisibility()
-        }
-    }
-
-    private fun setupSignOutButton() {
-        binding.signOutButton.setOnClickListener {
-            UserIdManager.clearCurrentChatId(requireContext())
-            ReactionManager.clearReactions(requireContext())
-            Firebase.auth.signOut()
-            findNavController().navigate(R.id.action_chatbotFragment_to_authFragment)
         }
     }
 

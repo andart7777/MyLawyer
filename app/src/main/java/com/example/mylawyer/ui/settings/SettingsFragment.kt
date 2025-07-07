@@ -5,6 +5,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.RadioButton
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.mylawyer.R
@@ -14,18 +16,21 @@ import com.example.mylawyer.utils.ReactionManager
 import com.example.mylawyer.utils.UserIdManager
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-
+import android.content.Context
+import android.content.SharedPreferences
 
 class SettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
+    private lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
+        sharedPreferences = requireContext().getSharedPreferences("MyLawyerPrefs", Context.MODE_PRIVATE)
         return binding.root
     }
 
@@ -36,19 +41,12 @@ class SettingsFragment : Fragment() {
             findNavController().navigate(R.id.action_settingsFragment_to_authFragment)
             return
         }
-        setupSignOutButton()
+        setupDataManagementButton()
         setupEmailDisplay()
+        setupSignOutButton()
+        setupLanguageButton()
         bannerAdsSettings()
-    }
-
-    private fun setupSignOutButton() {
-        binding.cardLogout2.setOnClickListener {
-            Log.d("SettingsFragment", "Клик по кнопке разлогинивания")
-            UserIdManager.clearCurrentChatId(requireContext())
-            ReactionManager.clearReactions(requireContext())
-            Firebase.auth.signOut()
-            findNavController().navigate(R.id.action_settingsFragment_to_authFragment)
-        }
+        updateLanguageDisplay()
     }
 
     private fun setupEmailDisplay() {
@@ -56,7 +54,6 @@ class SettingsFragment : Fragment() {
         val email = user?.email
         if (email != null) {
             val maskedEmail = maskEmail(email)
-            // Находим TextView внутри card_email
             binding.emailMask.text = maskedEmail
         } else {
             Log.w("SettingsFragment", "Email пользователя не найден")
@@ -73,6 +70,52 @@ class SettingsFragment : Fragment() {
             localPart.length <= 4 -> "${localPart.substring(0, 2)}${localPart.drop(2)}"
             else -> "${localPart.substring(0, 2)}${"*".repeat(localPart.length - 4)}${localPart.takeLast(2)}$domain"
         }
+    }
+
+    private fun setupDataManagementButton() {
+        binding.cardDataManagementLinear.setOnClickListener{
+            findNavController().navigate(R.id.action_settingsFragment_to_settingsDataFragment)
+        }
+    }
+
+    private fun setupSignOutButton() {
+        binding.cardLogoutLinear.setOnClickListener {
+            Log.d("SettingsFragment", "Клик по кнопке разлогинивания")
+            UserIdManager.clearCurrentChatId(requireContext())
+            ReactionManager.clearReactions(requireContext())
+            Firebase.auth.signOut()
+            findNavController().navigate(R.id.action_settingsFragment_to_authFragment)
+        }
+    }
+
+    private fun setupLanguageButton() {
+        binding.cardLanguage.setOnClickListener {
+            showLanguageDialog()
+        }
+    }
+
+    private fun showLanguageDialog() {
+        val languages = arrayOf("Русский", "English")
+        val selectedLanguage = sharedPreferences.getString("language", "Русский")
+        val selectedIndex = languages.indexOf(selectedLanguage)
+
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle("Выберите язык")
+        builder.setSingleChoiceItems(languages, selectedIndex) { dialog, which ->
+            val chosenLanguage = languages[which]
+            sharedPreferences.edit().putString("language", chosenLanguage).apply()
+            updateLanguageDisplay()
+            dialog.dismiss()
+        }
+        builder.setPositiveButton("OK") { dialog, _ ->
+            dialog.dismiss()
+        }
+        builder.show()
+    }
+
+    private fun updateLanguageDisplay() {
+        val currentLanguage = sharedPreferences.getString("language", "Русский")
+        binding.cardLanguage.findViewById<TextView>(R.id.language_display)?.text = currentLanguage
     }
 
     private fun bannerAdsSettings() {
