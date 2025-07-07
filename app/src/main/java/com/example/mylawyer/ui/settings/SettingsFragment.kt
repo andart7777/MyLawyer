@@ -37,6 +37,7 @@ class SettingsFragment : Fragment() {
             return
         }
         setupSignOutButton()
+        setupEmailDisplay()
         bannerAdsSettings()
     }
 
@@ -47,6 +48,30 @@ class SettingsFragment : Fragment() {
             ReactionManager.clearReactions(requireContext())
             Firebase.auth.signOut()
             findNavController().navigate(R.id.action_settingsFragment_to_authFragment)
+        }
+    }
+
+    private fun setupEmailDisplay() {
+        val user = Firebase.auth.currentUser
+        val email = user?.email
+        if (email != null) {
+            val maskedEmail = maskEmail(email)
+            // Находим TextView внутри card_email
+            binding.emailMask.text = maskedEmail
+        } else {
+            Log.w("SettingsFragment", "Email пользователя не найден")
+            binding.emailMask.text = "Email не доступен"
+        }
+    }
+
+    private fun maskEmail(email: String): String {
+        val indexOfAt = email.indexOf('@')
+        if (indexOfAt < 3) return email // Если email слишком короткий, возвращаем как есть
+        val localPart = email.substring(0, indexOfAt)
+        val domain = email.substring(indexOfAt)
+        return when {
+            localPart.length <= 4 -> "${localPart.substring(0, 2)}${localPart.drop(2)}"
+            else -> "${localPart.substring(0, 2)}${"*".repeat(localPart.length - 4)}${localPart.takeLast(2)}$domain"
         }
     }
 
