@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/settingsFragment">
+    app:startDestination="@id/chatbotFragment">
 
     <fragment
         android:id="@+id/authFragment"
@@ -49,6 +49,28 @@
         <action
             android:id="@+id/action_settingsFragment_to_authFragment"
             app:destination="@id/authFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_settingsFragment_to_settingsDataFragment"
+            app:destination="@id/settingsDataFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/settingsDataFragment"
+        android:name="com.example.mylawyer.ui.settings.SettingsDataFragment"
+        android:label="Настройки"
+        tools:layout="@layout/fragment_settings_delete_data">
+        <action
+            android:id="@+id/action_settingsFragment_to_authFragment"
+            app:destination="@id/authFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_settingsDataFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment"
             app:popUpTo="@id/nav_graph"
             app:popUpToInclusive="true" />
     </fragment>
