@@ -56,6 +56,11 @@
             app:destination="@id/settingsDataFragment"
             app:popUpTo="@id/nav_graph"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_settingsFragment_self"
+            app:destination="@id/settingsFragment"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
