@@ -31,7 +31,8 @@ class SettingsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
-        sharedPreferences = requireContext().getSharedPreferences("MyLawyerPrefs", Context.MODE_PRIVATE)
+        sharedPreferences =
+            requireContext().getSharedPreferences("MyLawyerPrefs", Context.MODE_PRIVATE)
         return binding.root
     }
 
@@ -69,12 +70,17 @@ class SettingsFragment : Fragment() {
         val domain = email.substring(indexOfAt)
         return when {
             localPart.length <= 4 -> "${localPart.substring(0, 2)}${localPart.drop(2)}"
-            else -> "${localPart.substring(0, 2)}${"*".repeat(localPart.length - 4)}${localPart.takeLast(2)}$domain"
+            else -> "${
+                localPart.substring(
+                    0,
+                    2
+                )
+            }${"*".repeat(localPart.length - 4)}${localPart.takeLast(2)}$domain"
         }
     }
 
     private fun setupDataManagementButton() {
-        binding.cardDataManagementLinear.setOnClickListener{
+        binding.cardDataManagementLinear.setOnClickListener {
             findNavController().navigate(R.id.action_settingsFragment_to_settingsDataFragment)
         }
     }
@@ -122,8 +128,14 @@ class SettingsFragment : Fragment() {
         }
         val config = resources.configuration
         config.setLocale(Locale(locale))
-        resources.updateConfiguration(config, resources.displayMetrics)
-//        requireActivity().recreate() // Перезапуск активности для применения изменений
+        val updatedContext = requireContext().createConfigurationContext(config)
+        resources.updateConfiguration(config, updatedContext.resources.displayMetrics)
+//        requireActivity().recreate() // Перезапуск активности для применения изменений (мигает экран)
+//        findNavController().navigate(R.id.action_settingsFragment_self) Не работает...
+        // Обновляем UI вручную
+        binding.languageDisplay.text = language
+        binding.tvTitle.text = updatedContext.getString(R.string.settings)
+        binding.tvProfileSection.text = updatedContext.getString(R.string.profile)
     }
 
     private fun updateLanguageDisplay() {
@@ -138,6 +150,9 @@ class SettingsFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _binding?.let {
+            it.bannerSettings.destroy()
+        }
         _binding = null
     }
 }
