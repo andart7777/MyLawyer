@@ -90,6 +90,7 @@
                     app:tint="@color/text_primary" />
 
                 <TextView
+                    android:id="@+id/tv_email"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
@@ -142,6 +143,7 @@
                     android:src="@drawable/ic_google" />
 
                 <TextView
+                    android:id="@+id/tv_google"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
@@ -151,6 +153,7 @@
                     android:textSize="16sp" />
 
                 <TextView
+                    android:id="@+id/tv_connected"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
@@ -195,6 +198,7 @@
                     app:tint="@color/text_primary" />
 
                 <TextView
+                    android:id="@+id/tv_data_management"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
@@ -258,6 +262,7 @@
                     app:tint="@color/text_primary" />
 
                 <TextView
+                    android:id="@+id/tv_language"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
@@ -317,6 +322,7 @@
                     app:tint="@color/text_primary" />
 
                 <TextView
+                    android:id="@+id/tv_appearance"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
@@ -326,6 +332,7 @@
                     android:textSize="16sp" />
 
                 <TextView
+                    android:id="@+id/tv_system_theme"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
@@ -387,6 +394,7 @@
                     app:tint="@color/text_primary" />
 
                 <TextView
+                    android:id="@+id/tv_check_updates"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
@@ -396,6 +404,7 @@
                     android:textSize="16sp" />
 
                 <TextView
+                    android:id="@+id/tv_version"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
@@ -445,6 +454,7 @@
                     app:tint="@color/text_primary" />
 
                 <TextView
+                    android:id="@+id/tv_terms"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
@@ -495,6 +505,7 @@
                     app:tint="@color/text_primary" />
 
                 <TextView
+                    android:id="@+id/tv_contact_us"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
@@ -547,6 +558,7 @@
                     app:tint="@color/accent_color" />
 
                 <TextView
+                    android:id="@+id/tv_logout"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
