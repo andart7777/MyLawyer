@@ -136,6 +136,21 @@ class SettingsFragment : Fragment() {
         binding.languageDisplay.text = language
         binding.tvTitle.text = updatedContext.getString(R.string.settings)
         binding.tvProfileSection.text = updatedContext.getString(R.string.profile)
+        binding.tvEmail.text = updatedContext.getString(R.string.email)
+        binding.tvGoogle.text = updatedContext.getString(R.string.google)
+        binding.tvConnected.text = updatedContext.getString(R.string.connected)
+        binding.tvDataManagement.text = updatedContext.getString(R.string.data_management)
+        binding.tvAppSection.text = updatedContext.getString(R.string.application)
+        binding.tvLanguage.text = updatedContext.getString(R.string.language)
+        binding.tvAppearance.text = updatedContext.getString(R.string.appearance)
+        binding.tvSystemTheme.text = updatedContext.getString(R.string.system_theme)
+        binding.tvAboutSection.text = updatedContext.getString(R.string.about_app)
+        binding.tvCheckUpdates.text = updatedContext.getString(R.string.check_updates)
+        binding.tvVersion.text = updatedContext.getString(R.string.version)
+        binding.tvTerms.text = updatedContext.getString(R.string.terms_of_service)
+        binding.tvContactUs.text = updatedContext.getString(R.string.contact_us)
+        binding.tvLogout.text = updatedContext.getString(R.string.logout)
+        binding.tvFooter.text = updatedContext.getString(R.string.footer_text)
     }
 
     private fun updateLanguageDisplay() {
