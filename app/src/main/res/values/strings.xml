@@ -23,7 +23,7 @@
     <!-- О программе -->
     <string name="about_app">О программе</string>
     <string name="check_updates">Проверить обновления</string>
-    <string name="version">1.2</string>
+    <string name="version">1.0</string>
     <string name="terms_of_service">Соглашение об обслуживании</string>
     <string name="contact_us">Свяжитесь с нами</string>
     <string name="logout">Выйти</string>
@@ -31,4 +31,13 @@
     <!-- Футер -->
     <string name="footer_text">Сгенерировано ИИ, только для справки. Используйте законно.</string>
 
+    <!--    Проверка обновлений-->
+    <string name="no_updates_available">Нет доступных обновлений</string>
+    <string name="update_check_failed">Не удалось проверить наличие обновлений</string>
+    <string name="update_error">Ошибка запуска обновления</string>
+    <string name="update_cancelled">Обновление отменено</string>
+    <string name="update_check_error">Ошибка проверки обновлений</string>
+
+    <!--    Соглашение об обслуживании-->
+    <string name="terms_content_placeholder">Текст условий будет добавлен здесь</string>
 </resources>
