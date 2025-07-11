@@ -3,10 +3,16 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="background_color">#F5F5F5</color>
-    <color name="background_color_settings">#FDF6FE</color>
-    <color name="text_primary">#212121</color>
-    <color name="text_secondary">#757575</color>
-    <color name="accent_color">#FF5722</color>
+
+    <color name="background_color_settings">#FDF6FE</color> <!-- Светлый фон по умолчанию -->
+    <color name="text_primary">#000000</color> <!-- Черный текст по умолчанию -->
+    <color name="text_secondary">#757575</color> <!-- Серый текст по умолчанию -->
+    <color name="accent_color">#FF5722</color> <!-- Оранжевый акцент -->
+    <color name="colorPrimaryContainer">#D0F0FF</color>
+    <color name="colorSecondaryContainer">#E0E0E0</color>
+    <color name="onPrimaryContainer">#000000</color>
+    <color name="onSecondaryContainer">#000000</color>
+    <color name="bottom_bar_color">#F2E9F8</color>
 
     <!-- Темная тема -->
     <color name="background_color_dark">#121212</color>
@@ -15,4 +21,5 @@
 
     <!-- Дополнительные цвета -->
     <color name="transparent">#00000000</color>
+    <color name="edittext_border_color">#E0E0E0</color>
 </resources>

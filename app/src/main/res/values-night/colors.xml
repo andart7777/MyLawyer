@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background_color_settings">#1E1E1E</color> <!-- Темный фон -->
+    <color name="text_primary">#FFFFFF</color> <!-- Белый текст -->
+    <color name="text_secondary">#B0BEC5</color> <!-- Светло-серый текст -->
+    <color name="accent_color">#FF9800</color>
+    <color name="colorPrimaryContainer">#1E88E5</color>
+    <color name="colorSecondaryContainer">#424242</color>
+    <color name="onPrimaryContainer">#FFFFFF</color>
+    <color name="onSecondaryContainer">#FFFFFF</color>
+</resources>
