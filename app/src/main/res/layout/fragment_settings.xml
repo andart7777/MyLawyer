@@ -490,6 +490,7 @@
             app:layout_constraintTop_toBottomOf="@id/card_terms">
 
             <LinearLayout
+                android:id="@+id/card_contact_linear"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?attr/selectableItemBackground"

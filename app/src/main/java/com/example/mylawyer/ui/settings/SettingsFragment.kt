@@ -18,8 +18,10 @@ import com.example.mylawyer.utils.UserIdManager
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import android.content.Context
+import android.content.Intent
 import android.content.IntentSender
 import android.content.SharedPreferences
+import android.net.Uri
 import android.widget.Toast
 import androidx.fragment.app.viewModels
 import com.example.mylawyer.ui.chatbot.ChatViewModel
@@ -70,6 +72,7 @@ class SettingsFragment : Fragment() {
         setupAppearanceButton() // Новый метод для настройки кнопки выбора темы
         setupCheckUpdatesButton()
         setupTermsButton()
+        setupContactUsButton()
         bannerAdsSettings()
         updateLanguageDisplay()
         updateAppearanceDisplay() // Новый метод для отображения текущей темы
@@ -307,6 +310,22 @@ class SettingsFragment : Fragment() {
     private fun setupTermsButton() {
         binding.cardTermsLinear.setOnClickListener {
             findNavController().navigate(R.id.action_settingsFragment_to_termsFragment)
+        }
+    }
+
+    private fun setupContactUsButton() {
+        binding.cardContactLinear.setOnClickListener {
+            Log.d("SettingsFragment", "Нажата кнопка Свяжитесь с нами")
+            val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                data = Uri.parse("mailto:andart777@gmail.com")
+                putExtra(Intent.EXTRA_SUBJECT, "MyLawyer support")
+            }
+            try {
+                startActivity(Intent.createChooser(emailIntent, "Отправить email"))
+            } catch (e: Exception) {
+                Log.e("SettingsFragment", "Ошибка при открытии почтового клиента: ${e.message}", e)
+                Toast.makeText(requireContext(), "Не удалось открыть почтовое приложение", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
