@@ -17,6 +17,8 @@
     <string name="russian">русский</string>
     <string name="appearance">Внешний вид</string>
     <string name="system_theme">Система</string>
+    <string name="light_theme">Светлая</string>
+    <string name="dark_theme">Темная</string>
 
     <!-- О программе -->
     <string name="about_app">О программе</string>

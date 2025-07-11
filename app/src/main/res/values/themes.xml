@@ -3,6 +3,10 @@
     <style name="Base.Theme.MyLawyer" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorSurface">@color/background_color_settings</item>
+        <item name="colorSurfaceVariant">#FAFAFA</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
     </style>
 
     <style name="Theme.MyLawyer" parent="Base.Theme.MyLawyer" />

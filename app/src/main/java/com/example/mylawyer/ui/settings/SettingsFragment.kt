@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioButton
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.mylawyer.R
@@ -31,8 +32,10 @@ class SettingsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
-        sharedPreferences =
-            requireContext().getSharedPreferences("MyLawyerPrefs", Context.MODE_PRIVATE)
+        sharedPreferences = requireContext().getSharedPreferences("MyLawyerPrefs", Context.MODE_PRIVATE)
+        // Применяем сохраненную тему в onCreateView
+        val currentTheme = sharedPreferences.getString("theme", "system") ?: "system"
+        applyTheme(currentTheme)
         return binding.root
     }
 
@@ -47,8 +50,10 @@ class SettingsFragment : Fragment() {
         setupEmailDisplay()
         setupSignOutButton()
         setupLanguageButton()
+        setupAppearanceButton() // Новый метод для настройки кнопки выбора темы
         bannerAdsSettings()
         updateLanguageDisplay()
+        updateAppearanceDisplay() // Новый метод для отображения текущей темы
     }
 
     private fun setupEmailDisplay() {
@@ -101,6 +106,12 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    private fun setupAppearanceButton() {
+        binding.cardAppearanceLinear.setOnClickListener {
+            showAppearanceDialog()
+        }
+    }
+
     private fun showLanguageDialog() {
         val languages = arrayOf("Русский", "English")
         val selectedLanguage = sharedPreferences.getString("language", "Русский")
@@ -118,6 +129,50 @@ class SettingsFragment : Fragment() {
             dialog.dismiss()
         }
         builder.show()
+    }
+
+    private fun showAppearanceDialog() {
+        val themes = arrayOf(
+            getString(R.string.system_theme),
+            getString(R.string.light_theme),
+            getString(R.string.dark_theme)
+        )
+        val themeValues = arrayOf("system", "light", "dark")
+        val currentTheme = sharedPreferences.getString("theme", "system") ?: "system"
+        val selectedIndex = themeValues.indexOf(currentTheme)
+
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle(getString(R.string.appearance))
+        builder.setSingleChoiceItems(themes, selectedIndex) { dialog, which ->
+            val selectedTheme = themeValues[which]
+            sharedPreferences.edit().putString("theme", selectedTheme).apply()
+            applyTheme(selectedTheme)
+            updateAppearanceDisplay()
+            dialog.dismiss()
+        }
+        builder.setPositiveButton("OK") { dialog, _ ->
+            dialog.dismiss()
+        }
+        builder.show()
+    }
+
+    private fun applyTheme(theme: String) {
+        when (theme) {
+            "system" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+            "light" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            "dark" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        }
+    }
+
+    private fun updateAppearanceDisplay() {
+        val currentTheme = sharedPreferences.getString("theme", "system") ?: "system"
+        val displayText = when (currentTheme) {
+            "system" -> getString(R.string.system_theme)
+            "light" -> getString(R.string.light_theme)
+            "dark" -> getString(R.string.dark_theme)
+            else -> getString(R.string.system_theme)
+        }
+        binding.tvSystemTheme.text = displayText
     }
 
     private fun setLocale(language: String) {

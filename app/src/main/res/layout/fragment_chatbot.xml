@@ -86,7 +86,9 @@
             android:paddingTop="12dp"
             android:paddingEnd="48dp"
             android:paddingBottom="12dp"
-            android:scrollbars="vertical" />
+            android:scrollbars="vertical"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOnSurfaceVariant" />
 
         <ImageButton
             android:id="@+id/sendButton"
@@ -94,10 +96,11 @@
             android:layout_height="40dp"
             android:layout_gravity="end|center_vertical"
             android:layout_marginEnd="8dp"
-            android:background="@android:color/transparent"
+            android:background="?attr/selectableItemBackground"
             android:contentDescription="Отправить"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_send_chat" />
+            android:src="@drawable/ic_send_chat"
+            app:tint="?attr/colorOnSurface" />
     </FrameLayout>
 
     <ImageButton
@@ -106,19 +109,21 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:background="@android:color/transparent"
+        android:background="?attr/selectableItemBackground"
         android:src="@drawable/ic_history_chat"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/bannerChatBot" />
+        app:layout_constraintTop_toBottomOf="@+id/bannerChatBot"
+        app:tint="?attr/colorOnSurface" />
 
     <ImageButton
         android:id="@+id/btNewChat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
-        android:background="@android:color/transparent"
+        android:background="?attr/selectableItemBackground"
         android:src="@drawable/ic_new_chat"
         app:layout_constraintEnd_toStartOf="@+id/btChatHistory"
-        app:layout_constraintTop_toTopOf="@+id/btChatHistory" />
+        app:layout_constraintTop_toTopOf="@+id/btChatHistory"
+        app:tint="?attr/colorOnSurface" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
