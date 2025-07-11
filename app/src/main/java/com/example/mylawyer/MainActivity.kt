@@ -1,7 +1,9 @@
 package com.example.mylawyer
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.bundleOf
@@ -23,6 +25,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
     private lateinit var auth: FirebaseAuth
     private lateinit var authStateListener: FirebaseAuth.AuthStateListener
+    private val REQUEST_CODE_UPDATE = 999
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Применяем сохраненную тему перед установкой контента
@@ -104,6 +107,19 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_UPDATE) {
+            if (resultCode != RESULT_OK) {
+                Toast.makeText(
+                    this,
+                    getString(R.string.update_cancelled),
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

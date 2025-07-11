@@ -41,6 +41,10 @@ android {
 }
 
 dependencies {
+    implementation (libs.core)
+
+    implementation (libs.app.update.ktx)
+
     implementation(libs.mobileads)
 
     implementation(libs.logging.interceptor)

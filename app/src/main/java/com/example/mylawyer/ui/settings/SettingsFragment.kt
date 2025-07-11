@@ -18,7 +18,16 @@ import com.example.mylawyer.utils.UserIdManager
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import android.content.Context
+import android.content.IntentSender
 import android.content.SharedPreferences
+import android.widget.Toast
+import androidx.fragment.app.viewModels
+import com.example.mylawyer.ui.chatbot.ChatViewModel
+import com.example.mylawyer.viewmodel.ChatViewModelFactory
+import com.google.android.play.core.appupdate.AppUpdateManager
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.UpdateAvailability
 import java.util.Locale
 
 class SettingsFragment : Fragment() {
@@ -26,16 +35,24 @@ class SettingsFragment : Fragment() {
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
     private lateinit var sharedPreferences: SharedPreferences
+    private val viewModel: ChatViewModel by viewModels {
+        ChatViewModelFactory(requireContext())
+    }
+    private lateinit var appUpdateManager: AppUpdateManager
+    private val REQUEST_CODE_UPDATE = 999
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
-        sharedPreferences = requireContext().getSharedPreferences("MyLawyerPrefs", Context.MODE_PRIVATE)
+        sharedPreferences =
+            requireContext().getSharedPreferences("MyLawyerPrefs", Context.MODE_PRIVATE)
         // Применяем сохраненную тему в onCreateView
         val currentTheme = sharedPreferences.getString("theme", "system") ?: "system"
         applyTheme(currentTheme)
+        // Инициализация AppUpdateManager
+        appUpdateManager = AppUpdateManagerFactory.create(requireContext())
         return binding.root
     }
 
@@ -51,9 +68,82 @@ class SettingsFragment : Fragment() {
         setupSignOutButton()
         setupLanguageButton()
         setupAppearanceButton() // Новый метод для настройки кнопки выбора темы
+        setupCheckUpdatesButton()
+        setupTermsButton()
         bannerAdsSettings()
         updateLanguageDisplay()
         updateAppearanceDisplay() // Новый метод для отображения текущей темы
+    }
+
+    private fun setupCheckUpdatesButton() {
+        binding.cardCheckUpdates.setOnClickListener {
+            Log.d("SettingsFragment", "Проверка обновлений через Google Play")
+            checkForInAppUpdates()
+        }
+    }
+
+    private fun checkForInAppUpdates() {
+        val appUpdateInfoTask = appUpdateManager.appUpdateInfo
+        appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
+            ) {
+                // Немедленное обновление доступно
+                try {
+                    appUpdateManager.startUpdateFlowForResult(
+                        appUpdateInfo,
+                        AppUpdateType.IMMEDIATE,
+                        requireActivity(),
+                        REQUEST_CODE_UPDATE
+                    )
+                } catch (e: IntentSender.SendIntentException) {
+                    Log.e("SettingsFragment", "Ошибка запуска обновления: ${e.message}", e)
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.update_error),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            } else if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_NOT_AVAILABLE) {
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.no_updates_available),
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.update_check_failed),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }.addOnFailureListener { exception ->
+            Log.e("SettingsFragment", "Ошибка проверки обновлений: ${exception.message}", exception)
+            Toast.makeText(
+                requireContext(),
+                "${getString(R.string.update_check_error)}: ${exception.message}",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Проверяем, возобновляется ли немедленное обновление
+        appUpdateManager.appUpdateInfo.addOnSuccessListener { appUpdateInfo ->
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                try {
+                    appUpdateManager.startUpdateFlowForResult(
+                        appUpdateInfo,
+                        AppUpdateType.IMMEDIATE,
+                        requireActivity(),
+                        REQUEST_CODE_UPDATE
+                    )
+                } catch (e: IntentSender.SendIntentException) {
+                    Log.e("SettingsFragment", "Ошибка возобновления обновления: ${e.message}", e)
+                }
+            }
+        }
     }
 
     private fun setupEmailDisplay() {
@@ -212,6 +302,12 @@ class SettingsFragment : Fragment() {
         val currentLanguage = sharedPreferences.getString("language", "Русский")
         binding.languageDisplay.text = currentLanguage
         currentLanguage?.let { setLocale(it) }
+    }
+
+    private fun setupTermsButton() {
+        binding.cardTermsLinear.setOnClickListener {
+            findNavController().navigate(R.id.action_settingsFragment_to_termsFragment)
+        }
     }
 
     private fun bannerAdsSettings() {
