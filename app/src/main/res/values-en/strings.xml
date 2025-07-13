@@ -28,4 +28,6 @@
     <string name="update_cancelled">Update cancelled</string>
     <string name="update_check_error">Error checking for updates</string>
     <string name="terms_content_placeholder">Text</string>
+    <string name="retry">Repeat</string>
+    <string name="retry_with_countdown">Repeat (%ds)</string>
 </resources>
