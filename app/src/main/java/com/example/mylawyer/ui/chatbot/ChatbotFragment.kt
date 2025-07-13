@@ -233,8 +233,7 @@ class ChatbotFragment : Fragment() {
                 )
                 val index = localMessages.indexOfFirst { it.id == reactionUpdate.messageId }
                 if (index != -1) {
-                    localMessages[index] =
-                        localMessages[index].copy(reaction = reactionUpdate.reaction)
+                    localMessages[index] = localMessages[index].copy(reaction = reactionUpdate.reaction)
                     updateAdapter()
                 } else {
                     Log.w(
@@ -265,8 +264,9 @@ class ChatbotFragment : Fragment() {
                         binding.retryButton.isEnabled = true
                         binding.retryButton.setOnClickListener {
                             if (isNetworkAvailable()) {
+                                binding.chatLoadingProgressBar.visibility = View.VISIBLE
                                 if (error.contains("Не удалось загрузить чаты")) {
-                                    viewModel.syncChats()
+                                    viewModel.syncChats(isManualRetry = true)
                                 } else {
                                     retryLastMessage()
                                 }
@@ -283,7 +283,8 @@ class ChatbotFragment : Fragment() {
                         binding.retryButton.isEnabled = true
                         binding.retryButton.setOnClickListener {
                             if (error.contains("Не удалось загрузить чаты")) {
-                                viewModel.syncChats()
+                                binding.chatLoadingProgressBar.visibility = View.VISIBLE
+                                viewModel.syncChats(isManualRetry = true)
                             } else {
                                 retryLastMessage()
                             }
