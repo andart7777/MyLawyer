@@ -19,7 +19,9 @@ import com.example.mylawyer.utils.UserIdManager
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
-
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 data class ReactionUpdate(val messageId: Int, val reaction: Int)
 
@@ -88,7 +90,23 @@ class ChatViewModel(
                 }
             }.onFailure { exception ->
                 Log.e("ChatViewModel", "Ошибка отправки: ${exception.message}", exception)
-                _error.postValue(Event("Не удалось отправить сообщение: ${exception.message}"))
+                when (exception) {
+                    is SocketTimeoutException -> {
+                        _error.postValue(Event("timeout: Не удалось отправить сообщение"))
+                    }
+                    is retrofit2.HttpException -> {
+                        when (exception.code()) {
+                            401 -> _error.postValue(Event("Требуется повторная авторизация"))
+                            429 -> _error.postValue(Event("Слишком много запросов, попробуйте позже"))
+                            500 -> _error.postValue(Event("Ошибка сервера, попробуйте позже"))
+                            else -> _error.postValue(Event("Не удалось отправить сообщение: ${exception.message}"))
+                        }
+                    }
+                    is UnknownHostException, is ConnectException -> {
+                        _error.postValue(Event("Нет соединения с интернетом, проверьте подключение"))
+                    }
+                    else -> _error.postValue(Event("Не удалось отправить сообщение: ${exception.message}"))
+                }
             }
             _isWaitingForBotResponse.postValue(false)
         }
@@ -108,7 +126,23 @@ class ChatViewModel(
                 _chatMessages.postValue(Event(emptyList()))
             }.onFailure { exception ->
                 Log.e("ChatViewModel", "Ошибка создания чата: ${exception.message}", exception)
-                _error.postValue(Event("Не удалось создать чат: ${exception.message}"))
+                when (exception) {
+                    is SocketTimeoutException -> {
+                        _error.postValue(Event("timeout: Не удалось создать чат"))
+                    }
+                    is retrofit2.HttpException -> {
+                        when (exception.code()) {
+                            401 -> _error.postValue(Event("Требуется повторная авторизация"))
+                            429 -> _error.postValue(Event("Слишком много запросов, попробуйте позже"))
+                            500 -> _error.postValue(Event("Ошибка сервера, попробуйте позже"))
+                            else -> _error.postValue(Event("Не удалось создать чат: ${exception.message}"))
+                        }
+                    }
+                    is UnknownHostException, is ConnectException -> {
+                        _error.postValue(Event("Нет соединения с интернетом, проверьте подключение"))
+                    }
+                    else -> _error.postValue(Event("Не удалось создать чат: ${exception.message}"))
+                }
             }
             _isLoadingMessages.postValue(false)
         }
@@ -121,6 +155,28 @@ class ChatViewModel(
         return result.getOrNull()?.chatId?.also {
             _currentChatId.postValue(it)
             UserIdManager.saveCurrentChatId(context, it)
+        }.also { chatId ->
+            if (result.isFailure) {
+                val exception = result.exceptionOrNull()
+                Log.e("ChatViewModel", "Ошибка создания чата: ${exception?.message}", exception)
+                when (exception) {
+                    is SocketTimeoutException -> {
+                        _error.postValue(Event("timeout: Не удалось создать чат"))
+                    }
+                    is retrofit2.HttpException -> {
+                        when (exception.code()) {
+                            401 -> _error.postValue(Event("Требуется повторная авторизация"))
+                            429 -> _error.postValue(Event("Слишком много запросов, попробуйте позже"))
+                            500 -> _error.postValue(Event("Ошибка сервера, попробуйте позже"))
+                            else -> _error.postValue(Event("Не удалось создать чат: ${exception.message}"))
+                        }
+                    }
+                    is UnknownHostException, is ConnectException -> {
+                        _error.postValue(Event("Нет соединения с интернетом, проверьте подключение"))
+                    }
+                    else -> _error.postValue(Event("Не удалось создать чат: ${exception?.message}"))
+                }
+            }
         }
     }
 
@@ -147,7 +203,23 @@ class ChatViewModel(
                 _reactionUpdate.postValue(Event(ReactionUpdate(messageId, reaction)))
             } catch (e: Exception) {
                 Log.e("ChatViewModel", "Ошибка отправки реакции: ${e.message}", e)
-                _error.postValue(Event("Не удалось отправить реакцию: ${e.message}"))
+                when (e) {
+                    is SocketTimeoutException -> {
+                        _error.postValue(Event("timeout: Не удалось отправить реакцию"))
+                    }
+                    is retrofit2.HttpException -> {
+                        when (e.code()) {
+                            401 -> _error.postValue(Event("Требуется повторная авторизация"))
+                            429 -> _error.postValue(Event("Слишком много запросов, попробуйте позже"))
+                            500 -> _error.postValue(Event("Ошибка сервера, попробуйте позже"))
+                            else -> _error.postValue(Event("Не удалось отправить реакцию: ${e.message}"))
+                        }
+                    }
+                    is UnknownHostException, is ConnectException -> {
+                        _error.postValue(Event("Нет соединения с интернетом, проверьте подключение"))
+                    }
+                    else -> _error.postValue(Event("Не удалось отправить реакцию: ${e.message}"))
+                }
             }
         }
     }
@@ -167,7 +239,23 @@ class ChatViewModel(
                 _chatMessages.postValue(Event(updatedMessages))
             }.onFailure { exception ->
                 Log.e("ChatViewModel", "Ошибка загрузки: ${exception.message}", exception)
-                _error.postValue(Event("Ошибка при загрузке сообщений: ${exception.message}"))
+                when (exception) {
+                    is SocketTimeoutException -> {
+                        _error.postValue(Event("timeout: Не удалось загрузить сообщения"))
+                    }
+                    is retrofit2.HttpException -> {
+                        when (exception.code()) {
+                            401 -> _error.postValue(Event("Требуется повторная авторизация"))
+                            429 -> _error.postValue(Event("Слишком много запросов, попробуйте позже"))
+                            500 -> _error.postValue(Event("Ошибка сервера, попробуйте позже"))
+                            else -> _error.postValue(Event("Не удалось загрузить сообщения: ${exception.message}"))
+                        }
+                    }
+                    is UnknownHostException, is ConnectException -> {
+                        _error.postValue(Event("Нет соединения с интернетом, проверьте подключение"))
+                    }
+                    else -> _error.postValue(Event("Не удалось загрузить сообщения: ${exception.message}"))
+                }
             }
             _isLoadingMessages.postValue(false)
         }
@@ -190,7 +278,23 @@ class ChatViewModel(
                 }
             }.onFailure { exception ->
                 Log.e("ChatViewModel", "Ошибка загрузки чатов: ${exception.message}", exception)
-                _error.postValue(Event("Не удалось загрузить чаты: ${exception.message}"))
+                when (exception) {
+                    is SocketTimeoutException -> {
+                        _error.postValue(Event("timeout: Не удалось загрузить чаты"))
+                    }
+                    is retrofit2.HttpException -> {
+                        when (exception.code()) {
+                            401 -> _error.postValue(Event("Требуется повторная авторизация"))
+                            429 -> _error.postValue(Event("Слишком много запросов, попробуйте позже"))
+                            500 -> _error.postValue(Event("Ошибка сервера, попробуйте позже"))
+                            else -> _error.postValue(Event("Не удалось загрузить чаты: ${exception.message}"))
+                        }
+                    }
+                    is UnknownHostException, is ConnectException -> {
+                        _error.postValue(Event("Нет соединения с интернетом, проверьте подключение"))
+                    }
+                    else -> _error.postValue(Event("Не удалось загрузить чаты: ${exception.message}"))
+                }
             }
         }
     }
@@ -214,7 +318,23 @@ class ChatViewModel(
                     }
                 }.onFailure { exception ->
                     Log.e("ChatViewModel", "Ошибка загрузки: ${exception.message}", exception)
-                    _error.postValue(Event("Не удалось загрузить чаты: ${exception.message}"))
+                    when (exception) {
+                        is SocketTimeoutException -> {
+                            _error.postValue(Event("timeout: Не удалось загрузить чаты"))
+                        }
+                        is retrofit2.HttpException -> {
+                            when (exception.code()) {
+                                401 -> _error.postValue(Event("Требуется повторная авторизация"))
+                                429 -> _error.postValue(Event("Слишком много запросов, попробуйте позже"))
+                                500 -> _error.postValue(Event("Ошибка сервера, попробуйте позже"))
+                                else -> _error.postValue(Event("Не удалось загрузить чаты: ${exception.message}"))
+                            }
+                        }
+                        is UnknownHostException, is ConnectException -> {
+                            _error.postValue(Event("Нет соединения с интернетом, проверьте подключение"))
+                        }
+                        else -> _error.postValue(Event("Не удалось загрузить чаты: ${exception.message}"))
+                    }
                 }
             }
         }
@@ -236,7 +356,23 @@ class ChatViewModel(
                 syncChats()
             }.onFailure { exception ->
                 Log.e("ChatViewModel", "Ошибка удаления: ${exception.message}", exception)
-                _error.postValue(Event("Не удалось удалить чат: ${exception.message}"))
+                when (exception) {
+                    is SocketTimeoutException -> {
+                        _error.postValue(Event("timeout: Не удалось удалить чат"))
+                    }
+                    is retrofit2.HttpException -> {
+                        when (exception.code()) {
+                            401 -> _error.postValue(Event("Требуется повторная авторизация"))
+                            429 -> _error.postValue(Event("Слишком много запросов, попробуйте позже"))
+                            500 -> _error.postValue(Event("Ошибка сервера, попробуйте позже"))
+                            else -> _error.postValue(Event("Не удалось удалить чат: ${exception.message}"))
+                        }
+                    }
+                    is UnknownHostException, is ConnectException -> {
+                        _error.postValue(Event("Нет соединения с интернетом, проверьте подключение"))
+                    }
+                    else -> _error.postValue(Event("Не удалось удалить чат: ${exception.message}"))
+                }
             }
             _isLoadingMessages.postValue(false)
         }

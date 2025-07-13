@@ -40,4 +40,8 @@
 
     <!--    Соглашение об обслуживании-->
     <string name="terms_content_placeholder">Текст условий будет добавлен здесь</string>
+
+    <!--    Card error-->
+    <string name="retry">Повторить</string>
+    <string name="retry_with_countdown">Повторить (%ds)</string>
 </resources>

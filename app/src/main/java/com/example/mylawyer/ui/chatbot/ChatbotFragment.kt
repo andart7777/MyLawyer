@@ -1,6 +1,10 @@
 package com.example.mylawyer.ui.chatbot
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -23,7 +27,10 @@ import com.example.mylawyer.viewmodel.ChatViewModelFactory
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import jp.wasabeef.recyclerview.animators.SlideInUpAnimator
-
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class ChatbotFragment : Fragment() {
 
@@ -35,6 +42,11 @@ class ChatbotFragment : Fragment() {
     private lateinit var adapter: MessageAdapter
     private val localMessages = mutableListOf<Message>()
     private val args: ChatbotFragmentArgs by navArgs()
+    private var retryTimer: CountDownTimer? = null
+    private var lastFailedMessage: String? = null
+    private var retryJob: Job? = null
+    private var retryAttempts = 0
+    private val maxRetryAttempts = 3
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -54,6 +66,7 @@ class ChatbotFragment : Fragment() {
         setupRecyclerView()
         setupObservers()
         setupSendButton()
+        setupRetryButton()
         setupChatHistoryButton()
         setupNewChatButton()
         bannerAdsChatBot()
@@ -166,6 +179,7 @@ class ChatbotFragment : Fragment() {
                             )
                         )
                         updateAdapter()
+                        hideErrorCard()
                     }
                 }
             }
@@ -206,6 +220,7 @@ class ChatbotFragment : Fragment() {
                 localMessages.addAll(newMessages)
                 updateAdapter()
                 updateTextViewVisibility()
+                hideErrorCard()
             }
         }
 
@@ -230,16 +245,54 @@ class ChatbotFragment : Fragment() {
             }
         }
 
-viewModel.error.observe(viewLifecycleOwner) { event ->
-    event.getContentIfNotHandled()?.let { error ->
-        if (error.contains("Требуется повторная авторизация")) {
-            Firebase.auth.signOut()
-            findNavController().navigate(R.id.action_chatbotFragment_to_authFragment)
-        } else {
-            Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+        viewModel.error.observe(viewLifecycleOwner) { event ->
+            event.getContentIfNotHandled()?.let { error ->
+                if (error.contains("Требуется повторная авторизация")) {
+                    Firebase.auth.signOut()
+                    findNavController().navigate(R.id.action_chatbotFragment_to_authFragment)
+                } else {
+                    if (error.startsWith("timeout")) {
+                        binding.errorTitle.text = "Mylawyer не смог закончить ответ"
+                        binding.errorMessage.text = "Пожалуйста, попробуйте позже"
+                        showErrorCard()
+                        startRetryCountdown()
+                    } else if (error.contains("Нет соединения с интернетом")) {
+                        binding.errorTitle.text = "Нет соединения"
+                        binding.errorMessage.text = "Проверьте подключение к интернету"
+                        showErrorCard()
+                        retryTimer?.cancel()
+                        binding.retryButton.text = "Проверить"
+                        binding.retryButton.isEnabled = true
+                        binding.retryButton.setOnClickListener {
+                            if (isNetworkAvailable()) {
+                                if (error.contains("Не удалось загрузить чаты")) {
+                                    viewModel.syncChats()
+                                } else {
+                                    retryLastMessage()
+                                }
+                            } else {
+                                Toast.makeText(requireContext(), "Нет интернета", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    } else {
+                        binding.errorTitle.text = "Ошибка"
+                        binding.errorMessage.text = error
+                        showErrorCard()
+                        retryTimer?.cancel()
+                        binding.retryButton.text = getString(R.string.retry)
+                        binding.retryButton.isEnabled = true
+                        binding.retryButton.setOnClickListener {
+                            if (error.contains("Не удалось загрузить чаты")) {
+                                viewModel.syncChats()
+                            } else {
+                                retryLastMessage()
+                            }
+                        }
+                    }
+                    Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
-    }
-}
 
         viewModel.isWaitingForBotResponse.observe(viewLifecycleOwner) { isWaiting ->
             binding.typingAnimation.visibility = if (isWaiting) View.VISIBLE else View.GONE
@@ -255,10 +308,18 @@ viewModel.error.observe(viewLifecycleOwner) { event ->
         }
     }
 
+    private fun isNetworkAvailable(): Boolean {
+        val connectivityManager = requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+
     private fun setupSendButton() {
         binding.sendButton.setOnClickListener {
             val text = binding.edTextMessage.text.toString().trim()
             if (text.isNotEmpty()) {
+                lastFailedMessage = text
                 Log.d("ChatbotFragment", "Отправка сообщения: $text")
                 localMessages.add(
                     Message(
@@ -275,6 +336,13 @@ viewModel.error.observe(viewLifecycleOwner) { event ->
         }
     }
 
+    private fun setupRetryButton() {
+        binding.retryButton.setOnClickListener {
+            // Кнопка неактивна во время отсчета, поэтому клик возможен только после завершения таймера
+            retryLastMessage()
+        }
+    }
+
     private fun setupChatHistoryButton() {
         binding.btChatHistory.setOnClickListener {
             findNavController().navigate(R.id.action_chatbotFragment_to_chatHistoryFragment)
@@ -287,6 +355,7 @@ viewModel.error.observe(viewLifecycleOwner) { event ->
             localMessages.clear()
             updateAdapter()
             updateTextViewVisibility()
+            hideErrorCard()
         }
     }
 
@@ -305,6 +374,54 @@ viewModel.error.observe(viewLifecycleOwner) { event ->
         binding.textView.visibility = if (localMessages.isEmpty()) View.VISIBLE else View.GONE
     }
 
+    private fun showErrorCard() {
+        binding.errorCardView.visibility = View.VISIBLE
+        binding.typingAnimation.visibility = View.GONE
+    }
+
+    private fun hideErrorCard() {
+        binding.errorCardView.visibility = View.GONE
+        retryTimer?.cancel()
+        retryJob?.cancel()
+        binding.retryButton.text = getString(R.string.retry)
+        binding.retryButton.isEnabled = true
+    }
+
+    private fun startRetryCountdown() {
+        if (retryAttempts >= maxRetryAttempts) {
+            binding.retryButton.text = getString(R.string.retry)
+            binding.retryButton.isEnabled = true
+            return
+        }
+        retryTimer?.cancel()
+        retryJob?.cancel()
+
+        binding.retryButton.isEnabled = false
+        retryTimer = object : CountDownTimer(5000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                val secondsLeft = (millisUntilFinished / 1000).toInt()
+                binding.retryButton.text = getString(R.string.retry_with_countdown, secondsLeft)
+            }
+
+            override fun onFinish() {
+                binding.retryButton.isEnabled = true
+                binding.retryButton.text = getString(R.string.retry)
+                retryLastMessage()
+                retryAttempts++
+            }
+        }.start()
+    }
+
+    private fun retryLastMessage() {
+        lastFailedMessage?.let { message ->
+            retryJob?.cancel()
+            retryJob = MainScope().launch {
+                delay(500) // Задержка для предотвращения нагрузки на сервер
+                viewModel.sendMessage(message)
+            }
+        }
+    }
+
     fun scrollToBottom() {
         binding.recyclerView.post {
             binding.recyclerView.scrollToPosition(adapter.itemCount - 1)
@@ -317,6 +434,8 @@ viewModel.error.observe(viewLifecycleOwner) { event ->
 
     override fun onDestroyView() {
         super.onDestroyView()
+        retryTimer?.cancel()
+        retryJob?.cancel()
         _binding = null
     }
 }
