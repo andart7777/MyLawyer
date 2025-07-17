@@ -7,14 +7,13 @@ import com.example.mylawyer.data.api.RetrofitInstance
 import com.example.mylawyer.repository.ChatRepository
 import com.example.mylawyer.ui.chatbot.ChatViewModel
 
-    class ChatViewModelFactory(
-        private val context: Context
-    ) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(ChatViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return ChatViewModel(ChatRepository(RetrofitInstance.createApi(context)), context) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
+class ChatViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(ChatViewModel::class.java)) {
+            val retrofit = RetrofitInstance.api
+            val repository = ChatRepository(retrofit, context) // Передаём context в ChatRepository
+            return ChatViewModel(repository, context) as T
         }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
+}

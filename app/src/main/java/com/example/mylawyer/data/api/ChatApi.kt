@@ -12,7 +12,6 @@ import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
-import retrofit2.http.Query
 
 interface ChatApi {
     @POST("chat")
@@ -22,19 +21,13 @@ interface ChatApi {
     suspend fun createNewChat(@Body request: ChatCreateRequest): NewChatResponse
 
     @GET("chats")
-    suspend fun getChats(@Query("user_id") userId: String): List<ChatHistoryItem>
+    suspend fun getChats(): List<ChatHistoryItem>
 
     @GET("chats/{chat_id}/messages")
-    suspend fun getChatMessages(
-        @Path("chat_id") chatId: String,
-        @Query("user_id") userId: String
-    ): List<Message>
+    suspend fun getChatMessages(@Path("chat_id") chatId: String): List<Message>
 
     @DELETE("chats/{chat_id}")
-    suspend fun deleteChat(
-        @Path("chat_id") chatId: String,
-        @Query("user_id") userId: String
-    ): Map<String, String>
+    suspend fun deleteChat(@Path("chat_id") chatId: String): Map<String, String>
 
     @POST("like")
     suspend fun sendReaction(@Body request: ReactionRequest): Map<String, String>
