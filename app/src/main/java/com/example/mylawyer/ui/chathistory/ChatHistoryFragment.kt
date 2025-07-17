@@ -43,6 +43,7 @@ class ChatHistoryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         // Проверка авторизации
         if (Firebase.auth.currentUser == null) {
+            Log.w("ChatHistoryFragment", "Пользователь не авторизован, переход к AuthFragment")
             findNavController().navigate(R.id.action_chatHistoryFragment_to_authFragment)
             return
         }
@@ -56,6 +57,7 @@ class ChatHistoryFragment : Fragment() {
         adapter = ChatHistoryAdapter(
             onChatClick = { chat ->
                 Log.d("ChatHistoryFragment", "Выбран чат с chatId: ${chat.chatId}")
+                viewModel.setCurrentChatId(chat.chatId)
                 val action =
                     ChatHistoryFragmentDirections.actionChatHistoryFragmentToChatbotFragment(
                         chatId = chat.chatId
@@ -96,7 +98,12 @@ class ChatHistoryFragment : Fragment() {
         viewModel.error.observe(viewLifecycleOwner) { event ->
             event.getContentIfNotHandled()?.let { error ->
                 Log.e("ChatHistoryFragment", "Ошибка: $error")
-                Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+                if (error.contains("Требуется повторная авторизация")) {
+                    Firebase.auth.signOut()
+                    findNavController().navigate(R.id.action_chatHistoryFragment_to_authFragment)
+                } else {
+                    Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+                }
             }
         }
         viewModel.isLoadingMessages.observe(viewLifecycleOwner) { isLoading ->

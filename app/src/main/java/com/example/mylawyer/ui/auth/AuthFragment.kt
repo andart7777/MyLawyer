@@ -1,23 +1,17 @@
 package com.example.mylawyer.ui.auth
 
-import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.credentials.CredentialManager
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.exceptions.GetCredentialException
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.mylawyer.R
 import com.example.mylawyer.databinding.FragmentAuthBinding
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
@@ -46,7 +40,7 @@ class AuthFragment : Fragment() {
 
     private fun setupSignInButton() {
         binding.signInButton.setOnClickListener {
-            viewModel.signInWithGoogle(requireActivity(), credentialManager)
+            viewModel.signInWithGoogle(requireActivity(), credentialManager, requireContext())
         }
     }
 

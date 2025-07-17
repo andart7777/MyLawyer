@@ -6,12 +6,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mylawyer.data.model.ReactionRequest
-import com.example.mylawyer.data.model.ChatCreateRequest
 import com.example.mylawyer.data.model.ChatHistoryItem
 import com.example.mylawyer.data.model.ChatRequest
 import com.example.mylawyer.data.model.ChatResponse
 import com.example.mylawyer.data.model.Message
+import com.example.mylawyer.data.model.ReactionRequest
 import com.example.mylawyer.repository.ChatRepository
 import com.example.mylawyer.utils.Event
 import com.example.mylawyer.utils.ReactionManager
@@ -20,10 +19,10 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
-import retrofit2.HttpException
 
 data class ReactionUpdate(val messageId: Int, val reaction: Int)
 
@@ -71,26 +70,43 @@ class ChatViewModel(
         syncChats(isManualRetry = false)
     }
 
-    private fun handleError(exception: Throwable?, defaultMessage: String) {
-        Log.e("ChatViewModel", "Ошибка: ${exception?.message}", exception)
-        when (exception) {
-            is SocketTimeoutException -> {
-                _error.postValue(Event("timeout: $defaultMessage"))
-            }
-            is HttpException -> {
-                when (exception.code()) {
-                    401 -> _error.postValue(Event("Требуется повторная авторизация"))
-                    429 -> _error.postValue(Event("Слишком много запросов, попробуйте позже"))
-                    500 -> _error.postValue(Event("Ошибка сервера, попробуйте позже"))
-                    else -> _error.postValue(Event("$defaultMessage: ${exception.message}"))
+private fun handleError(exception: Throwable?, defaultMessage: String) {
+    Log.e("ChatViewModel", "Ошибка: ${exception?.message}", exception)
+    when (exception) {
+        is HttpException -> {
+            when (exception.code()) {
+                400 -> {
+                    val errorBody = exception.response()?.errorBody()?.string()
+                    if (errorBody?.contains("Invalid UUID format") == true) {
+                        _error.postValue(Event("Некорректный формат идентификатора чата"))
+                    } else {
+                        _error.postValue(Event("Некорректный запрос: проверьте данные чата"))
+                    }
                 }
+                401 -> _error.postValue(Event("Требуется повторная авторизация"))
+                403 -> _error.postValue(Event("Доступ запрещён: этот чат не принадлежит вам"))
+                404 -> _error.postValue(Event("Чат не найден"))
+                429 -> _error.postValue(Event("Слишком много запросов, попробуйте позже"))
+                500 -> _error.postValue(Event("Ошибка сервера, попробуйте позже"))
+                else -> _error.postValue(Event("$defaultMessage: ${exception.message}"))
             }
-            is UnknownHostException, is ConnectException -> {
-                _error.postValue(Event("Нет соединения с интернетом, проверьте подключение"))
-            }
-            else -> _error.postValue(Event("$defaultMessage: ${exception?.message}"))
         }
+        is IllegalStateException -> {
+            if (exception.message?.contains("closed") == true) {
+                _error.postValue(Event("Ошибка обработки ответа сервера. Попробуйте снова."))
+            } else {
+                _error.postValue(Event("$defaultMessage: ${exception.message}"))
+            }
+        }
+        is SocketTimeoutException -> {
+            _error.postValue(Event("Время ожидания истекло: $defaultMessage"))
+        }
+        is UnknownHostException, is ConnectException -> {
+            _error.postValue(Event("Нет соединения с интернетом, проверьте подключение"))
+        }
+        else -> _error.postValue(Event("$defaultMessage: ${exception?.message}"))
     }
+}
 
     fun sendMessage(message: String) {
         viewModelScope.launch {
@@ -108,11 +124,10 @@ class ChatViewModel(
                     currentMessages.add(response)
                     _messages.postValue(currentMessages)
                 }
-                _currentChatId.postValue(response.chatId.toString())
-                UserIdManager.saveCurrentChatId(context, response.chatId.toString())
-                // Загружаем сообщения только если это новый чат
+                _currentChatId.postValue(response.chatId)
+                UserIdManager.saveCurrentChatId(context, response.chatId)
                 if (currentChatId != response.chatId) {
-                    loadChatMessages(response.chatId.toString())
+                    loadChatMessages(response.chatId)
                 }
             }.onFailure { exception ->
                 handleError(exception, "Не удалось отправить сообщение")
@@ -124,13 +139,11 @@ class ChatViewModel(
     fun createNewChat() {
         viewModelScope.launch {
             _isLoadingMessages.postValue(true)
-            val userId = UserIdManager.getUserId(context)
-            val request = ChatCreateRequest(userId = userId, title = null)
-            val result = repository.createNewChat(request)
+            val result = repository.createNewChat()
             result.onSuccess { response ->
                 Log.d("ChatViewModel", "Создан новый чат: ${response.chatId}")
-                _currentChatId.postValue(response.chatId.toString())
-                UserIdManager.saveCurrentChatId(context, response.chatId.toString())
+                _currentChatId.postValue(response.chatId)
+                UserIdManager.saveCurrentChatId(context, response.chatId)
                 _messages.postValue(emptyList())
                 _chatMessages.postValue(Event(emptyList()))
             }.onFailure { exception ->
@@ -141,9 +154,7 @@ class ChatViewModel(
     }
 
     private suspend fun createNewChatSync(): String? {
-        val userId = UserIdManager.getUserId(context)
-        val request = ChatCreateRequest(userId = userId, title = null)
-        val result = repository.createNewChat(request)
+        val result = repository.createNewChat()
         return result.getOrNull()?.chatId?.also {
             _currentChatId.postValue(it)
             UserIdManager.saveCurrentChatId(context, it)
@@ -181,36 +192,41 @@ class ChatViewModel(
         }
     }
 
-    fun loadChatMessages(chatId: String) {
-        viewModelScope.launch {
-            _isLoadingMessages.postValue(true)
-            Log.d("ChatViewModel", "Загрузка сообщений для chatId: $chatId")
-            val userId = UserIdManager.getUserId(context)
-            val result = repository.getChatMessages(chatId, userId)
-            result.onSuccess { messages ->
-                Log.d("ChatViewModel", "Получено сообщений: ${messages.size}")
-                // Добавляем локальные реакции к сообщениям
-                val updatedMessages = messages.map { message ->
-                    message.copy(reaction = ReactionManager.getReaction(context, message.id ?: 0))
-                }
-                _chatMessages.postValue(Event(updatedMessages))
-            }.onFailure { exception ->
-                handleError(exception, "Не удалось загрузить сообщения")
-            }
+fun loadChatMessages(chatId: String) {
+    viewModelScope.launch {
+        _isLoadingMessages.postValue(true)
+        Log.d("ChatViewModel", "Загрузка сообщений для chatId: $chatId")
+        // Очищаем chatId от пробелов и проверяем формат
+        val cleanedChatId = chatId.trim()
+        if (!cleanedChatId.matches(Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"))) {
+            Log.e("ChatViewModel", "Некорректный формат chatId: $cleanedChatId")
+            _error.postValue(Event("Некорректный формат идентификатора чата"))
             _isLoadingMessages.postValue(false)
+            return@launch
         }
+        val result = repository.getChatMessages(cleanedChatId)
+        result.onSuccess { messages ->
+            Log.d("ChatViewModel", "Получено сообщений: ${messages.size}")
+            val updatedMessages = messages.map { message ->
+                message.copy(reaction = ReactionManager.getReaction(context, message.id ?: 0))
+            }
+            _chatMessages.postValue(Event(updatedMessages))
+        }.onFailure { exception ->
+            handleError(exception, "Не удалось загрузить сообщения")
+        }
+        _isLoadingMessages.postValue(false)
     }
+}
 
     fun syncChats(isManualRetry: Boolean = false) {
         viewModelScope.launch {
             if (Firebase.auth.currentUser == null) return@launch
-            val userId = UserIdManager.getUserId(context)
             if (isManualRetry) {
                 syncChatsRetryAttempts = 0 // Сбрасываем счетчик при ручном вызове
                 Log.d("ChatViewModel", "Ручной вызов syncChats, сброс попыток")
             }
             _isLoadingMessages.postValue(true)
-            val result = repository.getChats(userId)
+            val result = repository.getChats()
             result.onSuccess { chats ->
                 Log.d("ChatViewModel", "Получено чатов: ${chats.size}")
                 _chats.postValue(chats)
@@ -239,9 +255,8 @@ class ChatViewModel(
     fun initializeDefaultChat() {
         viewModelScope.launch {
             if (_currentChatId.value == null) {
-                val userId = UserIdManager.getUserId(context)
                 _isLoadingMessages.postValue(true)
-                val result = repository.getChats(userId)
+                val result = repository.getChats()
                 result.onSuccess { chats ->
                     Log.d("ChatViewModel", "Получено чатов: ${chats.size}")
                     syncChatsRetryAttempts = 0 // Сбрасываем счетчик при успехе
@@ -274,8 +289,7 @@ class ChatViewModel(
     fun deleteChat(chatId: String) {
         viewModelScope.launch {
             _isLoadingMessages.postValue(true)
-            val userId = UserIdManager.getUserId(context)
-            val result = repository.deleteChat(chatId, userId)
+            val result = repository.deleteChat(chatId)
             result.onSuccess { response ->
                 Log.d("ChatViewModel", "Чат удален: $response")
                 if (_currentChatId.value == chatId) {
