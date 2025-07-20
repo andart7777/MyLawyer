@@ -55,34 +55,36 @@ class ChatHistoryFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        adapter = ChatHistoryAdapter(
-            onChatClick = { chat ->
-                Log.d("ChatHistoryFragment", "Выбран чат с chatId: ${chat.chatId}")
+    adapter = ChatHistoryAdapter(
+        onChatClick = { chat ->
+            Log.d("ChatHistoryFragment", "Выбран чат с chatId: ${chat.chatId}")
+            // Проверяем, отличается ли новый chatId от текущего
+            if (viewModel.currentChatId.value != chat.chatId) {
                 viewModel.setCurrentChatId(chat.chatId)
-                val action =
-                    ChatHistoryFragmentDirections.actionChatHistoryFragmentToChatbotFragment(
-                        chatId = chat.chatId
-                    )
-                findNavController().navigate(action)
-            },
-            onDeleteClick = { chat ->
-                android.app.AlertDialog.Builder(requireContext())
-                    .setTitle("Удалить чат?")
-                    .setMessage("Вы уверены, что хотите удалить чат \"${chat.title}\"?")
-                    .setPositiveButton("Удалить") { _, _ ->
-                        Log.d("ChatHistoryFragment", "Удаление чата с chatId: ${chat.chatId}")
-                        viewModel.deleteChat(chat.chatId)
-                    }
-                    .setNegativeButton("Отмена", null)
-                    .show()
             }
-        )
-        binding.recyclerView.apply {
-            layoutManager = LinearLayoutManager(requireContext())
-            adapter = this@ChatHistoryFragment.adapter
-            itemAnimator = SlideInUpAnimator().apply { addDuration = 200 }
+            val action = ChatHistoryFragmentDirections.actionChatHistoryFragmentToChatbotFragment(
+                chatId = chat.chatId
+            )
+            findNavController().navigate(action)
+        },
+        onDeleteClick = { chat ->
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Удалить чат?")
+                .setMessage("Вы уверены, что хотите удалить чат \"${chat.title}\"?")
+                .setPositiveButton("Удалить") { _, _ ->
+                    Log.d("ChatHistoryFragment", "Удаление чата с chatId: ${chat.chatId}")
+                    viewModel.deleteChat(chat.chatId)
+                }
+                .setNegativeButton("Отмена", null)
+                .show()
         }
+    )
+    binding.recyclerView.apply {
+        layoutManager = LinearLayoutManager(requireContext())
+        adapter = this@ChatHistoryFragment.adapter
+        itemAnimator = SlideInUpAnimator().apply { addDuration = 200 }
     }
+}
 
     private fun setupObservers() {
         viewModel.chats.observe(viewLifecycleOwner) { chats: List<ChatHistoryItem> ->

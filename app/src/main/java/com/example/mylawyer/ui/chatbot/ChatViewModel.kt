@@ -29,7 +29,6 @@ data class ReactionUpdate(val messageId: Int, val reaction: Int)
 class ChatViewModel(
 
     private val repository: ChatRepository,
-
     private val context: Context
 ) : ViewModel() {
 
@@ -60,6 +59,8 @@ class ChatViewModel(
 
     private var syncChatsRetryAttempts = 0
     private val maxSyncChatsRetryAttempts = 3
+
+    private val loadingChatIds = mutableSetOf<String>() // Хранит chatId, для которых уже выполняется загрузка
 
     init {
         // Загружаем сохранённый chatId
@@ -170,10 +171,14 @@ fun setCurrentChatId(chatId: String) {
     if (_currentChatId.value != chatId) {
         _currentChatId.postValue(chatId)
         UserIdManager.saveCurrentChatId(context, chatId)
-        _messages.postValue(emptyList())
+        // Всегда загружаем сообщения для нового chatId
         loadChatMessages(chatId)
     } else {
-        Log.d("ChatViewModel", "chatId не изменился, пропускаем загрузку: $chatId")
+        Log.d("ChatViewModel", "chatId не изменился, проверяем сообщения: $chatId")
+        // Если сообщения отсутствуют, загружаем их
+        if (_chatMessages.value?.peekContent()?.isEmpty() != false) {
+            loadChatMessages(chatId)
+        }
     }
 }
 
@@ -195,30 +200,37 @@ fun setCurrentChatId(chatId: String) {
     }
 
 fun loadChatMessages(chatId: String) {
-    viewModelScope.launch {
-        _isLoadingMessages.postValue(true)
-        Log.d("ChatViewModel", "Загрузка сообщений для chatId: $chatId")
-        // Очищаем chatId от пробелов и проверяем формат
-        val cleanedChatId = chatId.trim()
-        if (!cleanedChatId.matches(Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"))) {
-            Log.e("ChatViewModel", "Некорректный формат chatId: $cleanedChatId")
-            _error.postValue(Event("Некорректный формат идентификатора чата"))
-            _isLoadingMessages.postValue(false)
-            return@launch
-        }
-        val result = repository.getChatMessages(cleanedChatId)
-        result.onSuccess { messages ->
-            Log.d("ChatViewModel", "Получено сообщений: ${messages.size}")
-            val updatedMessages = messages.map { message ->
-                message.copy(reaction = ReactionManager.getReaction(context, message.id ?: 0))
+        viewModelScope.launch {
+            if (loadingChatIds.contains(chatId)) {
+                Log.d("ChatViewModel", "Загрузка для chatId: $chatId уже выполняется, пропускаем")
+                return@launch
             }
-            _chatMessages.postValue(Event(updatedMessages))
-        }.onFailure { exception ->
-            handleError(exception, "Не удалось загрузить сообщения")
+            loadingChatIds.add(chatId)
+            _isLoadingMessages.postValue(true)
+            Log.d("ChatViewModel", "Загрузка сообщений для chatId: $chatId")
+            val cleanedChatId = chatId.trim()
+            if (!cleanedChatId.matches(Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"))) {
+                Log.e("ChatViewModel", "Некорректный формат chatId: $cleanedChatId")
+                _error.postValue(Event("Некорректный формат идентификатора чата"))
+                _isLoadingMessages.postValue(false)
+                loadingChatIds.remove(chatId)
+                return@launch
+            }
+            val result = repository.getChatMessages(cleanedChatId)
+            result.onSuccess { messages ->
+                Log.d("ChatViewModel", "Получено сообщений: ${messages.size}")
+                val updatedMessages = messages.map { message ->
+                    message.copy(reaction = ReactionManager.getReaction(context, message.id ?: 0))
+                }
+                _chatMessages.postValue(Event(updatedMessages))
+            }.onFailure { exception ->
+                handleError(exception, "Не удалось загрузить сообщения")
+            }
+            _isLoadingMessages.postValue(false)
+            loadingChatIds.remove(chatId)
         }
-        _isLoadingMessages.postValue(false)
     }
-}
+
 
     fun syncChats(isManualRetry: Boolean = false) {
         viewModelScope.launch {
