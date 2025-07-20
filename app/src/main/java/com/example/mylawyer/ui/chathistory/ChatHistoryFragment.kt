@@ -41,7 +41,6 @@ class ChatHistoryFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // Проверка авторизации
         if (Firebase.auth.currentUser == null) {
             Log.w("ChatHistoryFragment", "Пользователь не авторизован, переход к AuthFragment")
             findNavController().navigate(R.id.action_chatHistoryFragment_to_authFragment)
@@ -49,8 +48,10 @@ class ChatHistoryFragment : Fragment() {
         }
         setupRecyclerView()
         setupObservers()
-        viewModel.syncChats()
-        bannerAdsChatHistory()
+        if (viewModel.chats.value == null) { // Проверяем, загружены ли чаты
+            viewModel.syncChats()
+            bannerAdsChatHistory()
+        }
     }
 
     private fun setupRecyclerView() {
