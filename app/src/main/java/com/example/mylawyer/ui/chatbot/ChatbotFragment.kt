@@ -56,55 +56,63 @@ class ChatbotFragment : Fragment() {
         return binding.root
     }
 
-override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    super.onViewCreated(view, savedInstanceState)
-    // Проверка авторизации
-    if (Firebase.auth.currentUser == null) {
-        findNavController().navigate(R.id.action_chatbotFragment_to_authFragment)
-        return
-    }
-    setupRecyclerView()
-    setupObservers()
-    setupSendButton()
-    setupRetryButton()
-    setupChatHistoryButton()
-    setupNewChatButton()
-    bannerAdsChatBot()
-
-    // Восстанавливаем localMessages из savedInstanceState
-    val restoredMessages = savedInstanceState?.getParcelableArrayList<Message>("localMessages")
-    val savedChatId = savedInstanceState?.getString("chatId") ?: UserIdManager.getCurrentChatId(requireContext())
-    Log.d("ChatbotFragment", "onViewCreated: savedChatId = $savedChatId, localMessages size = ${localMessages.size}")
-
-    // Проверяем, соответствует ли текущий chatId сохранённым сообщениям
-    val currentChatId = args.chatId ?: savedChatId ?: viewModel.currentChatId.value
-    if (restoredMessages != null && currentChatId == savedChatId) {
-        localMessages.clear()
-        localMessages.addAll(restoredMessages)
-        Log.d("ChatbotFragment", "Восстановлено сообщений из savedInstanceState: ${localMessages.size}")
-        adapter.submitList(localMessages.toList()) {
-            binding.recyclerView.scrollToPosition(localMessages.size - 1)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        // Проверка авторизации
+        if (Firebase.auth.currentUser == null) {
+            findNavController().navigate(R.id.action_chatbotFragment_to_authFragment)
+            return
         }
-        updateTextViewVisibility()
-    } else if (currentChatId != null && localMessages.isEmpty()) {
-        // Если нет восстановленных сообщений или chatId изменился, загружаем сообщения
-        Log.d("ChatbotFragment", "Загрузка сообщений для chatId: $currentChatId")
-        viewModel.setCurrentChatId(currentChatId)
-    } else if (currentChatId == null) {
-        Log.d("ChatbotFragment", "Нет chatId, инициализируем чат")
-        viewModel.initializeDefaultChat()
-        binding.typingAnimation.visibility = View.GONE
-        binding.chatLoadingProgressBar.visibility = View.GONE
-        updateTextViewVisibility()
-    } else {
-        // Если localMessages не пуст, но chatId совпадает, обновляем адаптер
-        Log.d("ChatbotFragment", "Обновляем адаптер для chatId: $currentChatId")
-        adapter.submitList(localMessages.toList()) {
-            binding.recyclerView.scrollToPosition(localMessages.size - 1)
+        setupRecyclerView()
+        setupObservers()
+        setupSendButton()
+        setupRetryButton()
+        setupChatHistoryButton()
+        setupNewChatButton()
+        bannerAdsChatBot()
+
+        // Восстанавливаем localMessages из savedInstanceState
+        val restoredMessages = savedInstanceState?.getParcelableArrayList<Message>("localMessages")
+        val savedChatId = savedInstanceState?.getString("chatId") ?: UserIdManager.getCurrentChatId(
+            requireContext()
+        )
+        Log.d(
+            "ChatbotFragment",
+            "onViewCreated: savedChatId = $savedChatId, localMessages size = ${localMessages.size}"
+        )
+
+        // Проверяем, соответствует ли текущий chatId сохранённым сообщениям
+        val currentChatId = args.chatId ?: savedChatId ?: viewModel.currentChatId.value
+        if (restoredMessages != null && currentChatId == savedChatId) {
+            localMessages.clear()
+            localMessages.addAll(restoredMessages)
+            Log.d(
+                "ChatbotFragment",
+                "Восстановлено сообщений из savedInstanceState: ${localMessages.size}"
+            )
+            adapter.submitList(localMessages.toList()) {
+                binding.recyclerView.scrollToPosition(localMessages.size - 1)
+            }
+            updateTextViewVisibility()
+        } else if (currentChatId != null && localMessages.isEmpty()) {
+            // Если нет восстановленных сообщений или chatId изменился, загружаем сообщения
+            Log.d("ChatbotFragment", "Загрузка сообщений для chatId: $currentChatId")
+            viewModel.setCurrentChatId(currentChatId)
+        } else if (currentChatId == null) {
+            Log.d("ChatbotFragment", "Нет chatId, инициализируем чат")
+            viewModel.initializeDefaultChat()
+            binding.typingAnimation.visibility = View.GONE
+            binding.chatLoadingProgressBar.visibility = View.GONE
+            updateTextViewVisibility()
+        } else {
+            // Если localMessages не пуст, но chatId совпадает, обновляем адаптер
+            Log.d("ChatbotFragment", "Обновляем адаптер для chatId: $currentChatId")
+            adapter.submitList(localMessages.toList()) {
+                binding.recyclerView.scrollToPosition(localMessages.size - 1)
+            }
+            updateTextViewVisibility()
         }
-        updateTextViewVisibility()
     }
-}
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
@@ -168,52 +176,57 @@ override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     }
 
     private fun setupObservers() {
-        viewModel.messages.observe(viewLifecycleOwner) { responses ->
-            if (responses.isNotEmpty()) {
-                val lastResponse = responses.last()
-                if (!localMessages.any { it.text == lastResponse.response && !it.isUser }) {
-                    lastResponse.response?.let { response ->
-                        localMessages.add(
-                            Message(
-                                text = response,
-                                isUser = false,
-                                botResponse = response
-                            )
+    viewModel.messages.observe(viewLifecycleOwner) { responses ->
+        if (responses.isNotEmpty()) {
+            val lastResponse = responses.last()
+            if (!localMessages.any { it.text == lastResponse.response && !it.isUser }) {
+                lastResponse.response?.let { response ->
+                    localMessages.add(
+                        Message(
+                            text = response,
+                            isUser = false,
+                            botResponse = response
                         )
-                        updateAdapter()
-                        hideErrorCard()
-                    }
+                    )
+                    updateAdapter()
+                    hideErrorCard()
                 }
             }
             updateTextViewVisibility()
         }
+    }
 
-        viewModel.chatMessages.observe(viewLifecycleOwner) { event ->
+    viewModel.chatMessages.observe(viewLifecycleOwner) { event ->
         event.getContentIfNotHandled()?.let { messages ->
             Log.d("ChatbotFragment", "Получено сообщений из API: ${messages.size}")
             localMessages.clear() // Очищаем перед добавлением новых сообщений
             messages.forEach { message ->
-                if (message.userMessage?.isNotEmpty() == true) {
-                    localMessages.add(
-                        Message(
-                            id = message.id,
-                            text = message.userMessage,
-                            isUser = true,
-                            userMessage = message.userMessage,
-                            reaction = message.reaction
+                // Проверяем, существует ли сообщение с таким id
+                if (message.id != null) {
+                    // Добавляем пользовательское сообщение
+                    if (message.userMessage?.isNotEmpty() == true) {
+                        localMessages.add(
+                            Message(
+                                id = message.id,
+                                text = message.userMessage,
+                                isUser = true,
+                                userMessage = message.userMessage,
+                                reaction = message.reaction
+                            )
                         )
-                    )
-                }
-                if (message.botResponse?.isNotEmpty() == true) {
-                    localMessages.add(
-                        Message(
-                            id = message.id,
-                            text = message.botResponse,
-                            isUser = false,
-                            botResponse = message.botResponse,
-                            reaction = message.reaction
+                    }
+                    // Добавляем ответ бота с тем же id только если он ещё не добавлен
+                    if (message.botResponse?.isNotEmpty() == true && !localMessages.any { it.id == message.id && !it.isUser }) {
+                        localMessages.add(
+                            Message(
+                                id = message.id,
+                                text = message.botResponse,
+                                isUser = false,
+                                botResponse = message.botResponse,
+                                reaction = message.reaction
+                            )
                         )
-                    )
+                    }
                 }
             }
             updateAdapter()
@@ -222,26 +235,26 @@ override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         }
     }
 
-        // Наблюдатель за обновлением реакции
-        viewModel.reactionUpdate.observe(viewLifecycleOwner) { event ->
-            event.getContentIfNotHandled()?.let { reactionUpdate ->
-                Log.d(
+    // Наблюдатель за обновлением реакции
+    viewModel.reactionUpdate.observe(viewLifecycleOwner) { event ->
+        event.getContentIfNotHandled()?.let { reactionUpdate ->
+            Log.d(
+                "ChatbotFragment",
+                "Обновление реакции: messageId=${reactionUpdate.messageId}, reaction=${reactionUpdate.reaction}"
+            )
+            // Обновляем реакцию только для сообщения бота с нужным id
+            val index = localMessages.indexOfFirst { it.id == reactionUpdate.messageId && !it.isUser }
+            if (index != -1) {
+                localMessages[index] = localMessages[index].copy(reaction = reactionUpdate.reaction)
+                updateAdapter()
+            } else {
+                Log.w(
                     "ChatbotFragment",
-                    "Обновление реакции: messageId=${reactionUpdate.messageId}, reaction=${reactionUpdate.reaction}"
+                    "Сообщение бота с id=${reactionUpdate.messageId} не найдено в localMessages"
                 )
-                val index = localMessages.indexOfFirst { it.id == reactionUpdate.messageId }
-                if (index != -1) {
-                    localMessages[index] =
-                        localMessages[index].copy(reaction = reactionUpdate.reaction)
-                    updateAdapter()
-                } else {
-                    Log.w(
-                        "ChatbotFragment",
-                        "Сообщение с id=${reactionUpdate.messageId} не найдено в localMessages"
-                    )
-                }
             }
         }
+    }
 
         viewModel.error.observe(viewLifecycleOwner) { event ->
             event.getContentIfNotHandled()?.let { error ->
@@ -310,6 +323,12 @@ override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         viewModel.isLoadingMessages.observe(viewLifecycleOwner) { isLoading ->
             binding.chatLoadingProgressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
+
+        localMessages.groupBy { it.id }.forEach { (id, messages) ->
+            if (messages.size > 1) {
+                Log.w("ChatbotFragment", "Обнаружены дубликаты сообщений с id=$id: $messages")
+            }
+        }
     }
 
     private fun isNetworkAvailable(): Boolean {
@@ -320,30 +339,30 @@ override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-private fun setupSendButton() {
-    binding.sendButton.setOnClickListener {
-        val text = binding.edTextMessage.text.toString().trim()
-        if (text.isNotEmpty()) {
-            lastFailedMessage = text
-            Log.d("ChatbotFragment", "Отправка сообщения: $text")
-            localMessages.add(
-                Message(
-                    text = text,
-                    isUser = true,
-                    userMessage = text
+    private fun setupSendButton() {
+        binding.sendButton.setOnClickListener {
+            val text = binding.edTextMessage.text.toString().trim()
+            if (text.isNotEmpty()) {
+                lastFailedMessage = text
+                Log.d("ChatbotFragment", "Отправка сообщения: $text")
+                localMessages.add(
+                    Message(
+                        text = text,
+                        isUser = true,
+                        userMessage = text
+                    )
                 )
-            )
-            updateAdapter()
-            viewModel.sendMessage(text)
-            // Очищаем кэш для текущего chatId
-            viewModel.currentChatId.value?.let { chatId ->
-                ChatRepository(RetrofitInstance.api, requireContext()).clearMessageCache(chatId)
+                updateAdapter()
+                viewModel.sendMessage(text)
+                // Очищаем кэш для текущего chatId
+                viewModel.currentChatId.value?.let { chatId ->
+                    ChatRepository(RetrofitInstance.api, requireContext()).clearMessageCache(chatId)
+                }
+                binding.edTextMessage.text.clear()
+                updateTextViewVisibility()
             }
-            binding.edTextMessage.text.clear()
-            updateTextViewVisibility()
         }
     }
-}
 
     private fun setupRetryButton() {
         binding.retryButton.setOnClickListener {
@@ -368,16 +387,18 @@ private fun setupSendButton() {
         }
     }
 
-    private fun updateAdapter() {
-        Log.d(
-            "ChatbotFragment",
-            "localMessages: ${localMessages.map { "id=${it.id}, text=${it.text}, reaction=${it.reaction}" }}"
-        )
-        adapter.submitList(localMessages.toList()) {
-            Log.d("ChatbotFragment", "Адаптер обновлён, сообщений: ${localMessages.size}")
-            binding.recyclerView.scrollToPosition(localMessages.size - 1)
-        }
+private fun updateAdapter() {
+    Log.d(
+        "ChatbotFragment",
+        "Обновление адаптера, localMessages: ${localMessages.map { "id=${it.id}, text=${it.text}, reaction=${it.reaction}" }}"
+    )
+    // Создаём копию списка, чтобы DiffUtil мог сравнить
+    val newList = localMessages.toList()
+    adapter.submitList(newList) {
+        Log.d("ChatbotFragment", "Адаптер обновлён, сообщений: ${newList.size}")
+        binding.recyclerView.scrollToPosition(newList.size - 1)
     }
+}
 
     private fun updateTextViewVisibility() {
         binding.textView.visibility = if (localMessages.isEmpty()) View.VISIBLE else View.GONE

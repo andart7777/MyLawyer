@@ -32,14 +32,71 @@ class MessageAdapter(
         val btnDislike: ImageButton? = view.findViewById(R.id.imageButton2)
 
         fun bind(message: Message) {
-            btnLike?.setImageResource(
-                if (message.reaction == 1) R.drawable.ic_like_message_filled
-                else R.drawable.ic_like_message
+            Log.d(
+                "MessageViewHolder",
+                "Привязка: id=${message.id}, text=${message.text}, isUser=${message.isUser}, reaction=${message.reaction}"
             )
-            btnDislike?.setImageResource(
-                if (message.reaction == 2) R.drawable.ic_dislike_message_filled
-                else R.drawable.ic_dislike_message
-            )
+            textMessage.text = message.text
+            textMessage.visibility = if (message.text.isNullOrEmpty()) View.GONE else View.VISIBLE
+
+            if (message.isUser) {
+                btnLike?.visibility = View.GONE
+                btnDislike?.visibility = View.GONE
+            } else {
+                btnLike?.visibility = View.VISIBLE
+                btnDislike?.visibility = View.VISIBLE
+                btnLike?.setImageResource(
+                    if (message.reaction == 1) R.drawable.ic_like_message_filled
+                    else R.drawable.ic_like_message
+                )
+                btnDislike?.setImageResource(
+                    if (message.reaction == 2) R.drawable.ic_dislike_message_filled
+                    else R.drawable.ic_dislike_message
+                )
+                btnLike?.setOnClickListener {
+                    Log.d(
+                        "MessageViewHolder",
+                        "Кнопка ЛАЙК нажата: id=${message.id}, text=${message.text}"
+                    )
+                    onLikeClick(message)
+                }
+                btnDislike?.setOnClickListener {
+                    Log.d(
+                        "MessageViewHolder",
+                        "Кнопка ДИЗЛАЙК нажата: id=${message.id}, text=${message.text}"
+                    )
+                    onDislikeClick(message)
+                }
+            }
+
+            // Применяем ConstraintSet для изменения выравнивания
+            val constraintSet = ConstraintSet()
+            constraintSet.clone(messageContainer)
+            constraintSet.clear(R.id.textMessage, ConstraintSet.START)
+            constraintSet.clear(R.id.textMessage, ConstraintSet.END)
+
+            if (message.isUser) {
+                constraintSet.connect(
+                    R.id.textMessage,
+                    ConstraintSet.END,
+                    ConstraintSet.PARENT_ID,
+                    ConstraintSet.END,
+                    8
+                )
+                textMessage.setBackgroundResource(R.drawable.bg_user_message)
+                Log.d("MessageViewHolder", "User message: ${message.text}")
+            } else {
+                constraintSet.connect(
+                    R.id.textMessage,
+                    ConstraintSet.START,
+                    ConstraintSet.PARENT_ID,
+                    ConstraintSet.START,
+                    8
+                )
+                textMessage.setBackgroundResource(R.drawable.bg_bot_message)
+                Log.d("MessageViewHolder", "Bot message: ${message.text}")
+            }
+            constraintSet.applyTo(messageContainer)
         }
     }
 
@@ -48,7 +105,8 @@ class MessageAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
-        val layoutId = if (viewType == VIEW_TYPE_USER) R.layout.item_user_message else R.layout.item_message
+        val layoutId =
+            if (viewType == VIEW_TYPE_USER) R.layout.item_user_message else R.layout.item_message
         val view = LayoutInflater.from(parent.context).inflate(layoutId, parent, false)
         return MessageViewHolder(view)
     }
@@ -57,73 +115,24 @@ class MessageAdapter(
         val message = getItem(position)
         Log.d(
             "MessageAdapter",
-            "Привязка сообщения: id=${message.id}, text=${message.text}, isUser=${message.isUser}, reaction=${message.reaction}"
+            "onBindViewHolder: position=$position, id=${message.id}, text=${message.text}, isUser=${message.isUser}, reaction=${message.reaction}"
         )
-        holder.textMessage.text = message.text
-        holder.textMessage.visibility = if (message.text.isNullOrEmpty()) View.GONE else View.VISIBLE
-
-        // Применяем ConstraintSet для изменения выравнивания
-        val constraintSet = ConstraintSet()
-        constraintSet.clone(holder.messageContainer)
-
-        // Сброс выравнивания
-        constraintSet.clear(R.id.textMessage, ConstraintSet.START)
-        constraintSet.clear(R.id.textMessage, ConstraintSet.END)
-
-        if (message.isUser) {
-            // Пользовательское сообщение – вправо
-            constraintSet.connect(
-                R.id.textMessage,
-                ConstraintSet.END,
-                ConstraintSet.PARENT_ID,
-                ConstraintSet.END,
-                8
-            )
-            holder.textMessage.setBackgroundResource(R.drawable.bg_user_message)
-            Log.d("MessageAdapter", "User message: ${message.text}")
-            holder.btnLike?.visibility = View.GONE
-            holder.btnDislike?.visibility = View.GONE
-        } else {
-            // Бот – влево
-            constraintSet.connect(
-                R.id.textMessage,
-                ConstraintSet.START,
-                ConstraintSet.PARENT_ID,
-                ConstraintSet.START,
-                8
-            )
-            holder.textMessage.setBackgroundResource(R.drawable.bg_bot_message)
-            Log.d("MessageAdapter", "Bot message: ${message.text}")
-            holder.btnLike?.visibility = View.VISIBLE
-            holder.btnDislike?.visibility = View.VISIBLE
-            holder.btnLike?.setImageResource(
-                if (message.reaction == 1) R.drawable.ic_like_message_filled
-                else R.drawable.ic_like_message
-            )
-            holder.btnDislike?.setImageResource(
-                if (message.reaction == 2) R.drawable.ic_dislike_message_filled
-                else R.drawable.ic_dislike_message
-            )
-            holder.btnLike?.setOnClickListener {
-                Log.d("MessageAdapter", "Кнопка ЛАЙК нажата для сообщения: id=${message.id}, text=${message.text}")
-                onLikeClick(message)
-            }
-            holder.btnDislike?.setOnClickListener {
-                Log.d("MessageAdapter", "Кнопка ДИЗЛАЙК нажата для сообщения: id=${message.id}, text=${message.text}")
-                onDislikeClick(message)
-            }
-        }
-
-        constraintSet.applyTo(holder.messageContainer)
+        holder.bind(message)
     }
 
     class MessageDiffCallback : DiffUtil.ItemCallback<Message>() {
         override fun areItemsTheSame(oldItem: Message, newItem: Message): Boolean {
-            return oldItem.tempId == newItem.tempId
+            // Сравниваем по id и isUser для уникальности
+            return if (oldItem.id != null && newItem.id != null) {
+                oldItem.id == newItem.id && oldItem.isUser == newItem.isUser
+            } else {
+                // Для локальных сообщений без id используем tempId
+                oldItem.tempId == newItem.tempId
+            }
         }
 
         override fun areContentsTheSame(oldItem: Message, newItem: Message): Boolean {
-                return oldItem == newItem
+            return oldItem == newItem
         }
     }
 }
