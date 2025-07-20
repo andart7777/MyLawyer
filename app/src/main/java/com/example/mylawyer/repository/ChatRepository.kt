@@ -15,6 +15,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class ChatRepository(private val apiService: ChatApi, private val context: Context) {
+    private val messageCache = mutableMapOf<String, List<Message>>()
+    private val lastRequestTimes = mutableMapOf<String, Long>()
+    private val debounceTime = 1000L // 1 секунда
+    private val cacheTTL = 5 * 60 * 1000L // 5 минут
+
     suspend fun sendMessage(request: ChatRequest): Result<ChatResponse> {
         return withContext(Dispatchers.IO) {
             try {
@@ -81,16 +86,37 @@ class ChatRepository(private val apiService: ChatApi, private val context: Conte
 
     suspend fun getChatMessages(chatId: String): Result<List<Message>> {
         return withContext(Dispatchers.IO) {
+            val currentTime = System.currentTimeMillis()
+            val lastRequestTime = lastRequestTimes[chatId] ?: 0L
+            // Проверяем кэш и его актуальность
+            if (messageCache[chatId] != null && (currentTime - lastRequestTime) < cacheTTL) {
+                Log.d("ChatRepository", "Используем кэшированные сообщения для chatId: $chatId, размер: ${messageCache[chatId]!!.size}")
+                return@withContext Result.success(messageCache[chatId]!!)
+            }
             try {
                 Log.d("ChatRepository", "Получение сообщений для chat_id=$chatId")
                 val response = apiService.getChatMessages(chatId)
                 Log.d("ChatRepository", "Получено сообщений: ${response.size}")
+                // Сохраняем в кэш
+                messageCache[chatId] = response
+                lastRequestTimes[chatId] = currentTime
                 Result.success(response)
             } catch (e: Exception) {
                 Log.e("ChatRepository", "Ошибка получения сообщений: ${e.message}", e)
                 Result.failure(e)
             }
         }
+    }
+
+    fun clearMessageCache(chatId: String? = null) {
+        if (chatId != null) {
+            messageCache.remove(chatId)
+            lastRequestTimes.remove(chatId)
+        } else {
+            messageCache.clear()
+            lastRequestTimes.clear()
+        }
+        Log.d("ChatRepository", "Кэш сообщений очищен для chatId: $chatId")
     }
 
     suspend fun deleteChat(chatId: String): Result<Map<String, String>> {

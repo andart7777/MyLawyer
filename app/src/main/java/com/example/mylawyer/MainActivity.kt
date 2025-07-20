@@ -81,34 +81,32 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Обработка повторного нажатия на элемент BottomNavigationView
-        binding.bottomNav.setOnItemReselectedListener { item ->
-            when (item.itemId) {
-                R.id.chatbotFragment -> {
-                    val currentFragment = supportFragmentManager
-                        .findFragmentById(R.id.fragmentContainerView)
-                        ?.childFragmentManager
-                        ?.fragments
-                        ?.firstOrNull()
+binding.bottomNav.setOnItemReselectedListener { item ->
+    when (item.itemId) {
+        R.id.chatbotFragment -> {
+            val currentFragment = supportFragmentManager
+                .findFragmentById(R.id.fragmentContainerView)
+                ?.childFragmentManager
+                ?.fragments
+                ?.firstOrNull()
 
-                    if (currentFragment is ChatbotFragment) {
-                        // Если уже в ChatbotFragment, прокручиваем вниз
-                        currentFragment.scrollToBottom()
-                    } else {
-                        // Проверяем, есть ли ChatbotFragment в стеке
-                        if (navController.popBackStack(R.id.chatbotFragment, false)) {
-                            // Если ChatbotFragment найден в стеке, возвращаемся к нему
-                            // Состояние (chatId) сохраняется в ChatbotFragment
-                        } else {
-                            // Если ChatbotFragment не в стеке, открываем новый с текущим chatId
-                            chatViewModel.currentChatId.value?.let { chatId ->
-                                val bundle = bundleOf("chatId" to chatId)
-                                navController.navigate(R.id.chatbotFragment, bundle)
-                            } ?: navController.navigate(R.id.chatbotFragment)
-                        }
-                    }
+            if (currentFragment is ChatbotFragment) {
+                // Если уже в ChatbotFragment, прокручиваем вниз
+                currentFragment.scrollToBottom()
+            } else {
+                // Проверяем, есть ли ChatbotFragment в стеке
+                if (navController.popBackStack(R.id.chatbotFragment, false)) {
+                    // Если ChatbotFragment найден в стеке, возвращаемся к нему
+                    // Состояние (chatId) сохраняется в ChatbotFragment
+                } else {
+                    // Если ChatbotFragment не в стеке, открываем новый с текущим chatId
+                    val bundle = bundleOf("chatId" to chatViewModel.currentChatId.value)
+                    navController.navigate(R.id.chatbotFragment, bundle)
                 }
             }
         }
+    }
+}
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
