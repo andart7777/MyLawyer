@@ -54,3 +54,4 @@ local.properties
 # Исключение системных файлов Windows
 Thumbs.db
 
+/app/google-services.json

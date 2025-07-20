@@ -71,23 +71,58 @@ class ChatbotFragment : Fragment() {
         setupNewChatButton()
         bannerAdsChatBot()
 
-        // Восстанавливаем chatId из savedInstanceState или SharedPreferences
-        val savedChatId = savedInstanceState?.getString("chatId") ?: UserIdManager.getCurrentChatId(
-            requireContext()
-        )
-        if (savedChatId != null && savedChatId == viewModel.currentChatId.value) {
+        // Восстанавливаем localMessages из savedInstanceState
+        val restoredMessages = savedInstanceState?.getParcelableArrayList<Message>("localMessages")
+        if (restoredMessages != null) {
+            localMessages.clear()
+            localMessages.addAll(restoredMessages)
             Log.d(
                 "ChatbotFragment",
-                "Восстановлен chatId: $savedChatId, используем кэшированные сообщения"
+                "Восстановлено сообщений из savedInstanceState: ${localMessages.size}"
             )
             adapter.submitList(localMessages.toList())
             updateTextViewVisibility()
+        }
+
+        val savedChatId = savedInstanceState?.getString("chatId") ?: UserIdManager.getCurrentChatId(
+            requireContext()
+        )
+        Log.d(
+            "ChatbotFragment",
+            "onViewCreated: savedChatId = $savedChatId, localMessages size = ${localMessages.size}"
+        )
+        if (savedChatId != null) {
+            if (savedChatId == viewModel.currentChatId.value && localMessages.isNotEmpty()) {
+                Log.d(
+                    "ChatbotFragment",
+                    "Восстановлен chatId: $savedChatId, используем кэшированные сообщения"
+                )
+                adapter.submitList(localMessages.toList())
+                updateTextViewVisibility()
+            } else {
+                Log.d("ChatbotFragment", "Восстановлен chatId: $savedChatId, загружаем сообщения")
+                viewModel.setCurrentChatId(savedChatId)
+                // Проверяем, есть ли кэшированные сообщения в ViewModel
+                viewModel.chatMessages.value?.peekContent()?.let { messages ->
+                    Log.d(
+                        "ChatbotFragment",
+                        "Используем кэшированные сообщения из ViewModel: ${messages.size}"
+                    )
+                    localMessages.clear()
+                    localMessages.addAll(messages)
+                    adapter.submitList(localMessages.toList())
+                    updateTextViewVisibility()
+                    hideErrorCard()
+                } ?: run {
+                    Log.d("ChatbotFragment", "Сообщений в ViewModel нет, загружаем из репозитория")
+                    viewModel.loadChatMessages(savedChatId)
+                }
+            }
         } else {
             // Проверяем, открыт ли существующий чат
             args.chatId?.let { chatId ->
                 Log.d("ChatbotFragment", "Загрузка чата с chatId: $chatId")
                 viewModel.setCurrentChatId(chatId)
-                viewModel.loadChatMessages(chatId)
             } ?: run {
                 Log.d("ChatbotFragment", "chatId не предоставлен")
                 viewModel.currentChatId.value?.let { currentChatId ->
@@ -107,10 +142,11 @@ class ChatbotFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        // Сохраняем текущий chatId
         viewModel.currentChatId.value?.let { chatId ->
             outState.putString("chatId", chatId)
         }
+        // Сохраняем localMessages
+        outState.putParcelableArrayList("localMessages", ArrayList(localMessages))
     }
 
     private fun setupRecyclerView() {
@@ -193,24 +229,28 @@ class ChatbotFragment : Fragment() {
                 val newMessages = mutableListOf<Message>()
                 messages.forEach { message ->
                     message.userMessage?.takeIf { it.isNotEmpty() }?.let { userMsg ->
-                        newMessages.add(
-                            Message(
-                                text = userMsg,
-                                isUser = true,
-                                userMessage = userMsg
+                        if (!newMessages.any { it.text == userMsg && it.isUser }) {
+                            newMessages.add(
+                                Message(
+                                    text = userMsg,
+                                    isUser = true,
+                                    userMessage = userMsg
+                                )
                             )
-                        )
+                        }
                     }
                     message.botResponse?.takeIf { it.isNotEmpty() }?.let { botMsg ->
-                        newMessages.add(
-                            Message(
-                                id = message.id,
-                                text = botMsg,
-                                isUser = false,
-                                botResponse = botMsg,
-                                reaction = message.reaction
+                        if (!newMessages.any { it.text == botMsg && !it.isUser }) {
+                            newMessages.add(
+                                Message(
+                                    id = message.id,
+                                    text = botMsg,
+                                    isUser = false,
+                                    botResponse = botMsg,
+                                    reaction = message.reaction
+                                )
                             )
-                        )
+                        }
                     }
                 }
                 if (lastUserMessage != null && !newMessages.any { it.text == lastUserMessage.text && it.isUser }) {
@@ -233,7 +273,8 @@ class ChatbotFragment : Fragment() {
                 )
                 val index = localMessages.indexOfFirst { it.id == reactionUpdate.messageId }
                 if (index != -1) {
-                    localMessages[index] = localMessages[index].copy(reaction = reactionUpdate.reaction)
+                    localMessages[index] =
+                        localMessages[index].copy(reaction = reactionUpdate.reaction)
                     updateAdapter()
                 } else {
                     Log.w(
@@ -271,7 +312,11 @@ class ChatbotFragment : Fragment() {
                                     retryLastMessage()
                                 }
                             } else {
-                                Toast.makeText(requireContext(), "Нет интернета", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Нет интернета",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         }
                     } else {
@@ -310,7 +355,8 @@ class ChatbotFragment : Fragment() {
     }
 
     private fun isNetworkAvailable(): Boolean {
-        val connectivityManager = requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityManager =
+            requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)

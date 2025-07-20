@@ -165,15 +165,17 @@ private fun handleError(exception: Throwable?, defaultMessage: String) {
         }
     }
 
-    fun setCurrentChatId(chatId: String) {
-        Log.d("ChatViewModel", "Устанавливаем chatId: $chatId")
-        if (_currentChatId.value != chatId) {
-            _currentChatId.postValue(chatId)
-            UserIdManager.saveCurrentChatId(context, chatId)
-            _messages.postValue(emptyList())
-            loadChatMessages(chatId)
-        }
+fun setCurrentChatId(chatId: String) {
+    Log.d("ChatViewModel", "Устанавливаем chatId: $chatId")
+    if (_currentChatId.value != chatId) {
+        _currentChatId.postValue(chatId)
+        UserIdManager.saveCurrentChatId(context, chatId)
+        _messages.postValue(emptyList())
+        loadChatMessages(chatId)
+    } else {
+        Log.d("ChatViewModel", "chatId не изменился, пропускаем загрузку: $chatId")
     }
+}
 
     fun sendReaction(messageId: Int, reaction: Int) {
         viewModelScope.launch {
